@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:proyecto/presentation/screens/course_creation.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -91,8 +92,11 @@ class _HomePageState extends State<HomePage> {
                         alignment: Alignment.centerLeft,
                         child: ElevatedButton.icon(
                           onPressed: () {
-                            Navigator.pushNamed(context, '/crear_curso');
-                          },
+                          Navigator.push(
+                          context,
+                            MaterialPageRoute(builder: (context) => const CourseCreationScreen()),
+                          );
+                        },
                           icon: const Icon(Icons.add),
                           label: const Text('Crear curso'),
                           style: ElevatedButton.styleFrom(
