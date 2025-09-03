@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -22,9 +29,10 @@ class HomePage extends StatelessWidget {
       },
     ];
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Inicio')),
-      body: SingleChildScrollView(
+    // Lista de páginas para cada pestaña
+    final List<Widget> _pages = [
+      // INICIO
+      SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -125,6 +133,40 @@ class HomePage extends StatelessWidget {
             ],
           ),
         ),
+      ),
+      // EXPLORAR
+      const Center(child: Text('Explorar', style: TextStyle(fontSize: 24))),
+      // CONTACTOS
+      const Center(child: Text('Contactos', style: TextStyle(fontSize: 24))),
+      // PENDIENTES
+      const Center(child: Text('Pendientes', style: TextStyle(fontSize: 24))),
+      // PERFIL
+      const Center(child: Text('Perfil', style: TextStyle(fontSize: 24))),
+    ];
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Inicio')),
+      body: _pages[_selectedIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        selectedItemColor: Colors.black,
+        unselectedItemColor: Colors.grey,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Explorar'),
+          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Contactos'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.list_alt),
+            label: 'Pendientes',
+          ),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
+        ],
       ),
     );
   }
