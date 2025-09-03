@@ -14,7 +14,11 @@ class _LoginPageState extends State<LoginPage> {
   void _login() {
     // Lógica simple de autenticación
     if (_userController.text == "user" && _passController.text == "pass") {
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushReplacementNamed(
+        context,
+        '/home',
+        arguments: _userController.text,
+      );
     } else {
       showDialog(
         context: context,
