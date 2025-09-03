@@ -1,57 +1,54 @@
-*Peer Assessment App*
-Integrantes del Grupo 10
--Luis Espinel
--Yordi Gonzalez
--Mateo Suarez
+# 📱 Peer Assessment App  
 
-Distribución de Tareas
-Mateo Suarez
-Pantalla de Login - Autenticación de usuarios con opción para registrarse
+Aplicación en Flutter para la gestión de cursos, evaluaciones y trabajo colaborativo entre estudiantes y profesores.  
 
-Homepage - Pantalla principal con listas desplegables de cursos, botones de creación/eliminación, lista de cursos recomendados, información de evaluaciones y menú de navegación
+---
 
-Pantalla de Resultados - Visualización de calificaciones para profesores y estudiantes
+## 👥 Integrantes del Grupo 10  
+- **Luis Espinel**  
+- **Yordi Gonzalez**  
+- **Mateo Suarez**  
 
-Luis Espinel
-Creación de cursos - Formulario para que los profesores creen nuevos cursos
+---
 
-Manejo de cursos - Gestión de cursos como estudiante con asignaciones y resultados
+## 📌 Distribución de Tareas  
 
-Pantalla de Contactos - Gestión de invitaciones y relaciones entre usuarios
+### 👨‍💻 Mateo Suarez  
+- 🔐 **Pantalla de Login** → Autenticación de usuarios con opción de registro  
+- 🏠 **Homepage** → Pantalla principal con listas desplegables de cursos, botones de creación/eliminación, lista de cursos recomendados, información de evaluaciones y menú de navegación  
+- 📊 **Pantalla de Resultados** → Visualización de calificaciones para profesores y estudiantes  
 
-Pantalla de Pendientes - Lista de evaluaciones pendientes y por revisar
+### 👨‍💻 Luis Espinel  
+- ➕ **Creación de cursos** → Formulario para que los profesores creen nuevos cursos  
+- 📚 **Manejo de cursos** → Gestión de cursos como estudiante con asignaciones y resultados  
+- 📇 **Pantalla de Contactos** → Gestión de invitaciones y relaciones entre usuarios  
+- 🕒 **Pantalla de Pendientes** → Lista de evaluaciones pendientes y por revisar  
 
-Yordi Gonzalez
-Pantalla de Registro (Sign up) - Creación de nueva cuenta de usuario
+### 👨‍💻 Yordi Gonzalez  
+- 📝 **Pantalla de Registro (Sign up)** → Creación de nueva cuenta de usuario  
+- 🔎 **Explorador de cursos** → Navegación por categorías de cursos disponibles  
+- 👀 **Previsualización de curso** → Descripción del curso y opción de inscripción  
+- ✅ **Pantalla de Evaluaciones** → Formulario para evaluar a compañeros según criterios definidos  
 
-Explorador de cursos - Navegación por categorías de cursos disponibles
+---
 
-Previsualización de curso - Descripción del curso y opción de inscripción
+## 🚀 Funcionalidades Implementadas  
+- 🔐 Autenticación de usuario (Login/Registro)  
+- ➕ Creación y gestión de cursos  
+- 👨‍🎓 Visualización de cursos inscritos  
+- 🤝 Sistema de evaluaciones entre pares  
+- 📇 Gestión de contactos e invitaciones  
+- 📊 Visualización de resultados  
+- 🕒 Panel de tareas pendientes  
+- 🧭 Navegación integrada  
 
-Pantalla de Evaluaciones - Formulario para evaluar a compañeros según los criterios definidos
+---
 
-Funcionalidades Implementadas
-Autenticación de usuario (Login/Registro)
+## 🛠️ Tecnologías Utilizadas  
+- ⚡ **Flutter SDK**  
+- 💻 **Dart** (lenguaje de programación)  
+- 🔄 **GetX** para gestión de estado  
+- 📱 Diseño **responsivo** para dispositivos móviles  
 
-Creación y gestión de cursos
+---
 
-Visualización de cursos inscritos
-
-Sistema de evaluaciones entre pares
-
-Gestión de contactos e invitaciones
-
-Visualización de resultados
-
-Panel de tareas pendientes
-
-Navegación integrada
-
-Tecnologías Utilizadas
-Flutter SDK
-
-Dart programming language
-
-GetX para gestión de estado
-
-Diseño responsivo para dispositivos móviles
