@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peer Assessment App - Homepage</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', 'Segoe UI', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .phone-mockup {
+            width: 360px;
+            height: 700px;
+            background: white;
+            border-radius: 40px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+            border: 12px solid #1a1a1a;
+        }
+        
+        .screen {
+            width: 100%;
+            height: 100%;
+            background: white;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .status-bar {
+            height: 24px;
+            background: #1a1a1a;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 16px;
+            font-size: 12px;
+        }
+        
+        .app-content {
+            height: calc(100% - 68px);
+            overflow-y: auto;
+            padding: 16px;
+            background: #f8f9fa;
+        }
+        
+        .navigation-bar {
+            height: 60px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            padding: 0 10px;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #666;
+            padding: 8px 12px;
+            border-radius: 12px;
+        }
+        
+        .nav-item.active {
+            color: #1a1a1a;
+            background: #f0f2f5;
+        }
+        
+        .nav-icon {
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+        
+        h1 {
+            font-size: 20px;
+            margin-bottom: 16px;
+            color: #1a1a1a;
+            font-weight: 700;
+        }
+        
+        h2 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #1a1a1a;
+            font-weight: 600;
+        }
+        
+        .dropdown {
+            margin-bottom: 16px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .dropdown-header {
+            padding: 14px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 500;
+            background: white;
+        }
+        
+        .dropdown-content {
+            display: none;
+            border-top: 1px solid #f0f0f0;
+        }
+        
+        .dropdown.open .dropdown-content {
+            display: block;
+        }
+        
+        .course-card {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .course-info {
+            flex: 1;
+        }
+        
+        .course-title {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        
+        .course-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .status {
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 500;
+        }
+        
+        .status-active {
+            background: #e6f7ee;
+            color: #0b8e61;
+        }
+        
+        .status-draft {
+            background: #f2f2f2;
+            color: #666;
+        }
+        
+        .btn {
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 14px;
+            text-align: center;
+            display: block;
+            width: 100%;
+            border: none;
+            margin-top: 16px;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background: #1a1a1a;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: #1a1a1a;
+            border: 1px solid #1a1a1a;
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+            width: auto;
+            display: inline-block;
+            margin: 0;
+        }
+        
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #1a1a1a;
+            color: white;
+            font-size: 18px;
+            margin-left: 8px;
+        }
+        
+        .horizontal-scroll {
+            display: flex;
+            overflow-x: auto;
+            padding: 8px 0;
+            margin-bottom: 16px;
+            scrollbar-width: none;
+        }
+        
+        .horizontal-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .recommended-course {
+            flex: 0 0 auto;
+            width: 200px;
+            background: white;
+            border-radius: 12px;
+            padding: 12px;
+            margin-right: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .recommended-course img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .recommended-title {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        
+        .recommended-meta {
+            font-size: 11px;
+            color: #666;
+        }
+        
+        .next-evaluation {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .evaluation-title {
+            font-size: 15px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        .evaluation-meta {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 12px;
+        }
+        
+        .delete-btn {
+            color: #ff3b30;
+            background: transparent;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 25px;
+            background: #1a1a1a;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            margin-right: 12px;
+        }
+        
+        .user-details {
+            flex: 1;
+        }
+        
+        .user-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .user-role {
+            font-size: 13px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-mockup">
+        <div class="screen">
+            <div class="status-bar">
+                <span>9:41</span>
+                <span>📶</span>
+            </div>
+            
+            <div class="app-content">
+                <div class="user-info">
+                    <div class="user-avatar">M</div>
+                    <div class="user-details">
+                        <div class="user-name">Hola, Maria</div>
+                        <div class="user-role">Estudiante & Profesora</div>
+                    </div>
+                </div>
+                
+                <div class="dropdown">
+                    <div class="dropdown-header" onclick="toggleDropdown(this.parentNode)">
+                        <span>Profesor (2 cursos)</span>
+                        <span>▼</span>
+                    </div>
+                    <div class="dropdown-content">
+                        <div class="course-card">
+                            <div class="course-info">
+                                <div class="course-title">Curso de X</div>
+                                <div class="course-meta">
+                                    <span>4 Estudiantes</span>
+                                    <span class="status status-active">Active</span>
+                                </div>
+                            </div>
+                            <button class="delete-btn"><i class="fas fa-trash"></i></button>
+                        </div>
+                        <div class="course-card">
+                            <div class="course-info">
+                                <div class="course-title">Curso de Y</div>
+                                <div class="course-meta">
+                                    <span>2 Estudiantes</span>
+                                    <span class="status status-draft">Draft</span>
+                                </div>
+                            </div>
+                            <button class="delete-btn"><i class="fas fa-trash"></i></button>
+                        </div>
+                        <div class="course-card">
+                            <button class="btn btn-primary btn-small">
+                                <i class="fas fa-plus"></i> Crear curso
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="dropdown">
+                    <div class="dropdown-header" onclick="toggleDropdown(this.parentNode)">
+                        <span>Estudiante (3 cursos)</span>
+                        <span>▼</span>
+                    </div>
+                    <div class="dropdown-content">
+                        <div class="course-card">
+                            <div class="course-info">
+                                <div class="course-title">Diseño UX Avanzado</div>
+                                <div class="course-meta">
+                                    <span>Prof. Carlos Ruiz</span>
+                                    <span class="status status-active">Calificado</span>
+                                </div>
+                            </div>
+                            <button class="delete-btn"><i class="fas fa-trash"></i></button>
+                        </div>
+                        <div class="course-card">
+                            <div class="course-info">
+                                <div class="course-title">Flutter Intermedio</div>
+                                <div class="course-meta">
+                                    <span>Prof. Ana García</span>
+                                    <span class="status status-draft">Sin calificar</span>
+                                </div>
+                            </div>
+                            <button class="delete-btn"><i class="fas fa-trash"></i></button>
+                        </div>
+                        <div class="course-card">
+                            <div class="course-info">
+                                <div class="course-title">Matemáticas Aplicadas</div>
+                                <div class="course-meta">
+                                    <span>Prof. Luis Méndez</span>
+                                    <span class="status status-active">Calificado</span>
+                                </div>
+                            </div>
+                            <button class="delete-btn"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>
+                
+                <h2>Cursos Recomendados</h2>
+                
+                <div class="horizontal-scroll">
+                    <div class="recommended-course">
+                        <div style="background:#e0e0e0; height:100px; border-radius:8px; display:flex; align-items:center; justify-content:center; margin-bottom:8px;">
+                            <i class="fas fa-chalkboard-teacher" style="font-size:32px; color:#666;"></i>
+                        </div>
+                        <div class="recommended-title">Programación en Dart</div>
+                        <div class="recommended-meta">Prof. Roberto Sánchez</div>
+                    </div>
+                    
+                    <div class="recommended-course">
+                        <div style="background:#e0e0e0; height:100px; border-radius:8px; display:flex; align-items:center; justify-content:center; margin-bottom:8px;">
+                            <i class="fas fa-chalkboard-teacher" style="font-size:32px; color:#666;"></i>
+                        </div>
+                        <div class="recommended-title">Biología Molecular</div>
+                        <div class="recommended-meta">Prof. Laura Martínez</div>
+                    </div>
+                    
+                    <div class="recommended-course">
+                        <div style="background:#e0e0e0; height:100px; border-radius:8px; display:flex; align-items:center; justify-content:center; margin-bottom:8px;">
+                            <i class="fas fa-chalkboard-teacher" style="font-size:32px; color:#666;"></i>
+                        </div>
+                        <div class="recommended-title">Literatura Contemporánea</div>
+                        <div class="recommended-meta">Prof. Miguel Ángel</div>
+                    </div>
+                </div>
+                
+                <div class="next-evaluation">
+                    <div class="evaluation-title">Próxima Evaluación</div>
+                    <div class="evaluation-meta">Diseño UX - Grupo B</div>
+                    <div class="evaluation-meta">Vence: 25/08/2025</div>
+                    <button class="btn btn-primary">Realizar Evaluación</button>
+                </div>
+            </div>
+            
+            <div class="navigation-bar">
+                <div class="nav-item active">
+                    <div class="nav-icon"><i class="fas fa-home"></i></div>
+                    <span>Inicio</span>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon"><i class="fas fa-search"></i></div>
+                    <span>Explorar</span>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon"><i class="fas fa-users"></i></div>
+                    <span>Contactos</span>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon"><i class="fas fa-tasks"></i></div>
+                    <span>Pendientes</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleDropdown(element) {
+            element.classList.toggle('open');
+        }
+        
+        // Simular la navegación
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            item.addEventListener('click', function() {
+                navItems.forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        
+        // Botón de crear curso
+        const createCourseBtn = document.querySelector('.btn-small');
+        if (createCourseBtn) {
+            createCourseBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                alert('Navegando a la pantalla de Creación de Cursos');
+            });
+        }
+        
+        // Botón de evaluación
+        const evaluationBtn = document.querySelector('.next-evaluation .btn');
+        if (evaluationBtn) {
+            evaluationBtn.addEventListener('click', function() {
+                alert('Navegando a la pantalla de Evaluación');
+            });
+        }
+        
+        // Botones de eliminar
+        const deleteButtons = document.querySelectorAll('.delete-btn');
+        deleteButtons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const courseCard = this.closest('.course-card');
+                if (confirm('¿Estás seguro de que quieres eliminar este curso?')) {
+                    courseCard.style.opacity = '0.5';
+                    setTimeout(() => {
+                        courseCard.remove();
+                    }, 500);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
