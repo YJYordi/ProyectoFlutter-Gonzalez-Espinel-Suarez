@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:proyecto/presentation/screens/course_creation.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -9,6 +10,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
+  bool _profesorExpanded = false;
+  bool _estudianteExpanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +32,6 @@ class _HomePageState extends State<HomePage> {
       },
     ];
 
-    // Lista de páginas para cada pestaña
     final List<Widget> _pages = [
       // INICIO
       SingleChildScrollView(
@@ -38,14 +40,97 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Bienvenido $usuario',
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+              // Saludo
+              Row(
+                children: [
+                  CircleAvatar(child: Text(usuario[0].toUpperCase())),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Hola, $usuario',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const Text(
+                        'Estudiante & Profesora',
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ],
               ),
               const SizedBox(height: 24),
+              // Abanicos desplegables
+              ExpansionPanelList(
+                elevation: 2,
+                expandedHeaderPadding: EdgeInsets.zero,
+                expansionCallback: (int index, bool isExpanded) {
+                  setState(() {
+                    if (index == 0) {
+                      _profesorExpanded = !_profesorExpanded;
+                    } else {
+                      _estudianteExpanded = !_estudianteExpanded;
+                    }
+                  });
+                },
+                children: [
+                  ExpansionPanel(
+                    canTapOnHeader: true,
+                    headerBuilder: (context, isExpanded) {
+                      return ListTile(title: const Text('Profesor (0 cursos)'));
+                    },
+                    body: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 8,
+                      ),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                          Navigator.push(
+                          context,
+                            MaterialPageRoute(builder: (context) => const CourseCreationScreen()),
+                          );
+                        },
+                          icon: const Icon(Icons.add),
+                          label: const Text('Crear curso'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.black,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                    isExpanded: _profesorExpanded,
+                  ),
+                  ExpansionPanel(
+                    canTapOnHeader: true,
+                    headerBuilder: (context, isExpanded) {
+                      return ListTile(
+                        title: const Text('Estudiante (0 cursos)'),
+                      );
+                    },
+                    body: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 8,
+                      ),
+                      child: const Text(
+                        'No estás inscrito en ningún curso.',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                    isExpanded: _estudianteExpanded,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              // Cursos disponibles
               const Text(
                 'Cursos disponibles',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
@@ -151,9 +236,14 @@ class _HomePageState extends State<HomePage> {
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
         onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
+          if (index == 4) {
+            // Navegar a la pantalla de perfil
+            Navigator.pushNamed(context, '/perfil', arguments: usuario);
+          } else {
+            setState(() {
+              _selectedIndex = index;
+            });
+          }
         },
         selectedItemColor: Colors.black,
         unselectedItemColor: Colors.grey,
