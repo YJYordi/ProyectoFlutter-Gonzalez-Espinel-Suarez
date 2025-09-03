@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'presentation/screens/log_in.dart';
 import 'presentation/screens/home_page.dart';
+import 'presentation/screens/profile_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,6 +18,12 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => const LoginPage(),
         '/home': (context) => const HomePage(),
+        '/perfil': (context) {
+          final args =
+              ModalRoute.of(context)?.settings.arguments as String? ??
+              'Usuario';
+          return ProfileScreen(usuario: args);
+        },
       },
     );
   }

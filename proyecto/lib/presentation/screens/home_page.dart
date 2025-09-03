@@ -232,9 +232,14 @@ class _HomePageState extends State<HomePage> {
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
         onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
+          if (index == 4) {
+            // Navegar a la pantalla de perfil
+            Navigator.pushNamed(context, '/perfil', arguments: usuario);
+          } else {
+            setState(() {
+              _selectedIndex = index;
+            });
+          }
         },
         selectedItemColor: Colors.black,
         unselectedItemColor: Colors.grey,
