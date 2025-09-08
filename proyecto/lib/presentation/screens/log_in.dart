@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:proyecto/presentation/providers/auth_provider.dart';
+import 'package:proyecto/presentation/screens/sign_up.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -63,6 +64,15 @@ class _LoginPageState extends State<LoginPage> {
             ElevatedButton(
               onPressed: isLoading ? null : _login,
               child: Text(isLoading ? 'Iniciando...' : 'Iniciar sesión'),
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const SignUpPage()),
+                );
+              },
+              child: const Text('sign-up'),
             ),
           ],
         ),
