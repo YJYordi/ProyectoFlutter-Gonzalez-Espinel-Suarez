@@ -19,6 +19,11 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void> logout() {
     return dataSource.logout();
   }
+
+  @override
+  Future<UserEntity> register({required String name, required String username, required String password}) {
+    return dataSource.register(name: name, username: username, password: password);
+  }
 }
 
 

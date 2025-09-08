@@ -7,6 +7,7 @@ import 'package:proyecto/data/datasources/memory_data_source.dart';
 import 'package:proyecto/data/repositories/auth_repository_impl.dart';
 import 'package:proyecto/data/repositories/course_repository_impl.dart';
 import 'package:proyecto/Domain/usecases/login_usecase.dart';
+import 'package:proyecto/Domain/usecases/register_usecase.dart';
 import 'package:proyecto/Domain/usecases/get_courses_usecase.dart';
 import 'package:proyecto/Domain/usecases/create_course_usecase.dart';
 import 'package:proyecto/presentation/providers/auth_provider.dart';
@@ -28,7 +29,10 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<AuthProvider>(
-          create: (_) => AuthProvider(loginUseCase: LoginUseCase(authRepo)),
+          create: (_) => AuthProvider(
+            loginUseCase: LoginUseCase(authRepo),
+            registerUseCase: RegisterUseCase(authRepo),
+          ),
         ),
         ChangeNotifierProvider<CourseProvider>(
           create: (_) => CourseProvider(

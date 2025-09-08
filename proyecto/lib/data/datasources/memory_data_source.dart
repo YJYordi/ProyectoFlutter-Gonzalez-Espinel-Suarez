@@ -3,6 +3,9 @@ import 'package:proyecto/Domain/Entities/user.dart';
 
 class InMemoryDataSource {
   UserEntity? _currentUser;
+  final Map<String, (String name, String password)> _users = {
+    'user': ('Usuario Demo', 'pass'),
+  };
 
   final List<CourseEntity> _courses = <CourseEntity>[
     const CourseEntity(title: 'Flutter Básico', description: 'Aprende Flutter desde cero'),
@@ -15,8 +18,9 @@ class InMemoryDataSource {
 
   Future<UserEntity?> login(String username, String password) async {
     await Future<void>.delayed(const Duration(milliseconds: 200));
-    if (username == 'user' && password == 'pass') {
-      _currentUser = UserEntity(username: username);
+    final entry = _users[username];
+    if (entry != null && entry.$2 == password) {
+      _currentUser = UserEntity(username: username, name: entry.$1);
       return _currentUser;
     }
     return null;
@@ -24,6 +28,14 @@ class InMemoryDataSource {
 
   Future<void> logout() async {
     _currentUser = null;
+  }
+
+  Future<UserEntity> register({required String name, required String username, required String password}) async {
+    if (_users.containsKey(username)) {
+      throw ArgumentError('El usuario ya existe');
+    }
+    _users[username] = (name, password);
+    return UserEntity(username: username, name: name);
   }
 
   Future<List<CourseEntity>> getCourses() async {
