@@ -16,8 +16,13 @@ import 'package:proyecto/Domain/usecases/delete_course_usecase.dart';
 import 'package:proyecto/Domain/usecases/unenroll_from_course_usecase.dart';
 import 'package:proyecto/Domain/usecases/get_courses_by_creator_usecase.dart';
 import 'package:proyecto/Domain/usecases/get_courses_by_student_usecase.dart';
+import 'package:proyecto/Domain/usecases/get_courses_by_category_usecase.dart';
 import 'package:proyecto/presentation/providers/auth_provider.dart';
 import 'package:proyecto/presentation/providers/course_provider.dart';
+import 'package:proyecto/presentation/screens/category_courses_screen.dart';
+import 'package:proyecto/presentation/screens/sign_up.dart';
+import 'package:proyecto/presentation/screens/course_detail_screen.dart';
+import 'package:proyecto/Domain/Entities/course.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -72,6 +77,7 @@ class _MyAppState extends State<MyApp> {
             unenrollFromCourseUseCase: UnenrollFromCourseUseCase(_courseRepo),
             getCoursesByCreatorUseCase: GetCoursesByCreatorUseCase(_courseRepo),
             getCoursesByStudentUseCase: GetCoursesByStudentUseCase(_courseRepo),
+            getCoursesByCategoryUseCase: GetCoursesByCategoryUseCase(_courseRepo),
             courseRepository: _courseRepo,
           )..loadCourses(),
         ),
@@ -87,6 +93,15 @@ class _MyAppState extends State<MyApp> {
                 ModalRoute.of(context)?.settings.arguments as String? ??
                 'Usuario';
             return ProfileScreen(usuario: args);
+          },
+          '/signup': (context) => const SignUpPage(),
+          '/course_detail': (context) {
+            final args = ModalRoute.of(context)?.settings.arguments as CourseEntity;
+            return CourseDetailScreen(course: args);
+          },
+          '/category_courses': (context) {
+            final args = ModalRoute.of(context)?.settings.arguments as String;
+            return CategoryCoursesScreen(category: args);
           },
         },
       ),

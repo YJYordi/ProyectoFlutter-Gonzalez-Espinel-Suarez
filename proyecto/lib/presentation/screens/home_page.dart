@@ -175,20 +175,20 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
               const SizedBox(height: 24),
-              // Cursos disponibles
-              const Text(
-                'Cursos disponibles',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                height: 200,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: cursos.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 16),
-                  itemBuilder: (context, index) {
-                    final curso = cursos[index];
+          // Cursos disponibles
+          const Text(
+            'Cursos disponibles',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 200,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: cursos.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 16),
+              itemBuilder: (context, index) {
+                final curso = cursos[index];
                     return Card(
                       elevation: 4,
                       shape: RoundedRectangleBorder(
@@ -279,28 +279,69 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   ListTile(
                     leading: const Icon(Icons.code),
-                    title: const Text('Frontend'),
-                    onTap: () {},
+                    title: const Text('Desarrollo Frontend'),
+                    trailing: const Icon(Icons.arrow_forward_ios),
+                    onTap: () => Navigator.pushNamed(context, '/category_courses', arguments: 'Desarrollo Frontend'),
                   ),
                   ListTile(
                     leading: const Icon(Icons.storage),
-                    title: const Text('Backend'),
-                    onTap: () {},
+                    title: const Text('Desarrollo Backend'),
+                    trailing: const Icon(Icons.arrow_forward_ios),
+                    onTap: () => Navigator.pushNamed(context, '/category_courses', arguments: 'Desarrollo Backend'),
                   ),
                   ListTile(
                     leading: const Icon(Icons.design_services),
-                    title: const Text('UI/UX'),
-                    onTap: () {},
+                    title: const Text('UX/UI'),
+                    trailing: const Icon(Icons.arrow_forward_ios),
+                    onTap: () => Navigator.pushNamed(context, '/category_courses', arguments: 'UX/UI'),
                   ),
                   ListTile(
                     leading: const Icon(Icons.web),
                     title: const Text('Diseño Web'),
-                    onTap: () {},
+                    trailing: const Icon(Icons.arrow_forward_ios),
+                    onTap: () => Navigator.pushNamed(context, '/category_courses', arguments: 'Diseño Web'),
                   ),
                   ListTile(
                     leading: const Icon(Icons.developer_mode),
                     title: const Text('Desarrollo Web'),
-                    onTap: () {},
+                    trailing: const Icon(Icons.arrow_forward_ios),
+                    onTap: () => Navigator.pushNamed(context, '/category_courses', arguments: 'Desarrollo Web'),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.all_inclusive),
+                    title: const Text('Desarrollo Full Stack'),
+                    trailing: const Icon(Icons.arrow_forward_ios),
+                    onTap: () => Navigator.pushNamed(context, '/category_courses', arguments: 'Desarrollo Full Stack'),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.settings),
+                    title: const Text('Docker'),
+                    trailing: const Icon(Icons.arrow_forward_ios),
+                    onTap: () => Navigator.pushNamed(context, '/category_courses', arguments: 'Docker'),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.storage),
+                    title: const Text('Bases de Datos'),
+                    trailing: const Icon(Icons.arrow_forward_ios),
+                    onTap: () => Navigator.pushNamed(context, '/category_courses', arguments: 'Bases de Datos'),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.phone_android),
+                    title: const Text('Flutter Básico'),
+                    trailing: const Icon(Icons.arrow_forward_ios),
+                    onTap: () => Navigator.pushNamed(context, '/category_courses', arguments: 'Flutter Básico'),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.phone_android),
+                    title: const Text('Flutter Intermedio'),
+                    trailing: const Icon(Icons.arrow_forward_ios),
+                    onTap: () => Navigator.pushNamed(context, '/category_courses', arguments: 'Flutter Intermedio'),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.phone_android),
+                    title: const Text('Flutter Avanzado'),
+                    trailing: const Icon(Icons.arrow_forward_ios),
+                    onTap: () => Navigator.pushNamed(context, '/category_courses', arguments: 'Flutter Avanzado'),
                   ),
                 ],
               ),
@@ -309,7 +350,7 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       // EXPLORAR
-      const Center(child: Text('Explorar', style: TextStyle(fontSize: 24))),
+      _buildExplorePage(),
       // CONTACTOS
       const Center(child: Text('Contactos', style: TextStyle(fontSize: 24))),
       // PENDIENTES
@@ -397,6 +438,114 @@ class _HomePageState extends State<HomePage> {
           },
           child: const Text('Ver más'),
         ),
+      ),
+    );
+  }
+
+  Widget _buildExplorePage() {
+    final courseProvider = context.watch<CourseProvider>();
+    final searchResults = courseProvider.searchResults;
+    final searchQuery = courseProvider.searchQuery;
+
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Explorar Cursos',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            decoration: InputDecoration(
+              hintText: 'Buscar cursos...',
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: searchQuery.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () => courseProvider.clearSearch(),
+                    )
+                  : null,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onChanged: (value) => courseProvider.searchCourses(value),
+          ),
+          const SizedBox(height: 16),
+          if (searchQuery.isNotEmpty)
+            Text(
+              'Resultados para "$searchQuery" (${searchResults.length})',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+          const SizedBox(height: 12),
+          Expanded(
+            child: searchResults.isEmpty
+                ? Center(
+                    child: Text(
+                      searchQuery.isEmpty
+                          ? 'Escribe algo para buscar cursos'
+                          : 'No se encontraron cursos',
+                      style: const TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: searchResults.length,
+                    itemBuilder: (context, index) {
+                      final course = searchResults[index];
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: ListTile(
+                          title: Text(
+                            course.title,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Por: ${course.creatorName}'),
+                              Text(
+                                course.description,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 4),
+                              Wrap(
+                                spacing: 4,
+                                children: course.categories.take(2).map<Widget>((category) {
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue[100],
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      category,
+                                      style: const TextStyle(fontSize: 10, color: Colors.blue),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+                          ),
+                          trailing: ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => CourseDetailScreen(course: course),
+                                ),
+                              ).then((_) => _loadUserCourses());
+                            },
+                            child: const Text('Ver más'),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
       ),
     );
   }

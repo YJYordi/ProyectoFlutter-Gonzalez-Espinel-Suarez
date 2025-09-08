@@ -9,6 +9,7 @@ import 'package:proyecto/Domain/usecases/delete_course_usecase.dart';
 import 'package:proyecto/Domain/usecases/unenroll_from_course_usecase.dart';
 import 'package:proyecto/Domain/usecases/get_courses_by_creator_usecase.dart';
 import 'package:proyecto/Domain/usecases/get_courses_by_student_usecase.dart';
+import 'package:proyecto/Domain/usecases/get_courses_by_category_usecase.dart';
 import 'package:proyecto/Domain/repositories/course_repository.dart';
 
 class CourseProvider extends ChangeNotifier {
@@ -20,12 +21,17 @@ class CourseProvider extends ChangeNotifier {
   final UnenrollFromCourseUseCase unenrollFromCourseUseCase;
   final GetCoursesByCreatorUseCase getCoursesByCreatorUseCase;
   final GetCoursesByStudentUseCase getCoursesByStudentUseCase;
+  final GetCoursesByCategoryUseCase getCoursesByCategoryUseCase;
   final CourseRepository courseRepository;
 
   List<CourseEntity> _courses = <CourseEntity>[];
   List<CourseEntity> _createdCourses = <CourseEntity>[];
   List<CourseEntity> _enrolledCourses = <CourseEntity>[];
+  List<CourseEntity> _filteredCourses = <CourseEntity>[];
+  List<CourseEntity> _searchResults = <CourseEntity>[];
   bool _isLoading = false;
+  String _selectedCategory = '';
+  String _searchQuery = '';
 
   CourseProvider({
     required this.getCoursesUseCase,
@@ -36,18 +42,25 @@ class CourseProvider extends ChangeNotifier {
     required this.unenrollFromCourseUseCase,
     required this.getCoursesByCreatorUseCase,
     required this.getCoursesByStudentUseCase,
+    required this.getCoursesByCategoryUseCase,
     required this.courseRepository,
   });
 
   List<CourseEntity> get courses => _courses;
   List<CourseEntity> get createdCourses => _createdCourses;
   List<CourseEntity> get enrolledCourses => _enrolledCourses;
+  List<CourseEntity> get filteredCourses => _filteredCourses;
+  List<CourseEntity> get searchResults => _searchResults;
   bool get isLoading => _isLoading;
+  String get selectedCategory => _selectedCategory;
+  String get searchQuery => _searchQuery;
 
   Future<void> loadCourses() async {
     _isLoading = true;
     notifyListeners();
     _courses = await getCoursesUseCase();
+    _filteredCourses = _courses;
+    _searchResults = _courses;
     _isLoading = false;
     notifyListeners();
   }
@@ -120,6 +133,42 @@ class CourseProvider extends ChangeNotifier {
     await deleteCourseUseCase(courseId, creatorUsername);
     await loadCourses();
     await loadCreatedCourses(creatorUsername);
+  }
+
+  Future<void> filterCoursesByCategory(String category) async {
+    _selectedCategory = category;
+    if (category.isEmpty) {
+      _filteredCourses = _courses;
+    } else {
+      _filteredCourses = await getCoursesByCategoryUseCase(category);
+    }
+    notifyListeners();
+  }
+
+  void searchCourses(String query) {
+    _searchQuery = query;
+    if (query.isEmpty) {
+      _searchResults = _courses;
+    } else {
+      _searchResults = _courses.where((course) {
+        return course.title.toLowerCase().contains(query.toLowerCase()) ||
+               course.description.toLowerCase().contains(query.toLowerCase()) ||
+               course.creatorName.toLowerCase().contains(query.toLowerCase());
+      }).toList();
+    }
+    notifyListeners();
+  }
+
+  void clearSearch() {
+    _searchQuery = '';
+    _searchResults = _courses;
+    notifyListeners();
+  }
+
+  void clearCategoryFilter() {
+    _selectedCategory = '';
+    _filteredCourses = _courses;
+    notifyListeners();
   }
 }
 
