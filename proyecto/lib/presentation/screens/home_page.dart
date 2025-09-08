@@ -196,10 +196,13 @@ class _HomePageState extends State<HomePage> {
                       ),
                       child: Container(
                         width: 240,
+                        height: 200,
                         padding: const EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
+                            // Título del curso
                             Text(
                               curso.title,
                               style: const TextStyle(
@@ -210,56 +213,71 @@ class _HomePageState extends State<HomePage> {
                               overflow: TextOverflow.ellipsis,
                             ),
                             const SizedBox(height: 8),
+                            
+                            // Creador
                             Text(
                               'Por: ${curso.creatorName}',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey[600],
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              curso.description,
-                              style: const TextStyle(fontSize: 12),
-                              maxLines: 3,
+                              maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 12),
+                            
                             // Categorías
-                            Wrap(
-                              spacing: 4,
-                              runSpacing: 4,
-                              children: curso.categories.take(2).map<Widget>((category) {
-                                return Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 6,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue[100],
+                            Expanded(
+                              child: Wrap(
+                                spacing: 4,
+                                runSpacing: 4,
+                                children: curso.categories.take(3).map<Widget>((category) {
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue[100],
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      category,
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        color: Colors.blue,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            
+                            // Botón
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => CourseDetailScreen(course: curso),
+                                    ),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                  textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                                  backgroundColor: Colors.blue,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  child: Text(
-                                    category,
-                                    style: const TextStyle(
-                                      fontSize: 10,
-                                      color: Colors.blue,
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                            const Spacer(),
-                            ElevatedButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => CourseDetailScreen(course: curso),
-                                  ),
-                                );
-                              },
-                              child: const Text('Ver curso'),
+                                ),
+                                child: const Text('Ver más'),
+                              ),
                             ),
                           ],
                         ),
@@ -474,76 +492,114 @@ class _HomePageState extends State<HomePage> {
             onChanged: (value) => courseProvider.searchCourses(value),
           ),
           const SizedBox(height: 16),
-          if (searchQuery.isNotEmpty)
+          if (searchQuery.isNotEmpty) ...[
             Text(
               'Resultados para "$searchQuery" (${searchResults.length})',
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
-          const SizedBox(height: 12),
+            const SizedBox(height: 12),
+          ],
           Expanded(
-            child: searchResults.isEmpty
-                ? Center(
-                    child: Text(
-                      searchQuery.isEmpty
-                          ? 'Escribe algo para buscar cursos'
-                          : 'No se encontraron cursos',
-                      style: const TextStyle(fontSize: 16, color: Colors.grey),
+            child: searchQuery.isEmpty
+                ? const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.search,
+                          size: 64,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          'Escribe algo para buscar cursos',
+                          style: TextStyle(fontSize: 18, color: Colors.grey),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Busca por título, descripción o creador',
+                          style: TextStyle(fontSize: 14, color: Colors.grey),
+                        ),
+                      ],
                     ),
                   )
-                : ListView.builder(
-                    itemCount: searchResults.length,
-                    itemBuilder: (context, index) {
-                      final course = searchResults[index];
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        child: ListTile(
-                          title: Text(
-                            course.title,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Por: ${course.creatorName}'),
-                              Text(
-                                course.description,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 4),
-                              Wrap(
-                                spacing: 4,
-                                children: course.categories.take(2).map<Widget>((category) {
-                                  return Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: Colors.blue[100],
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      category,
-                                      style: const TextStyle(fontSize: 10, color: Colors.blue),
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                            ],
-                          ),
-                          trailing: ElevatedButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => CourseDetailScreen(course: course),
-                                ),
-                              ).then((_) => _loadUserCourses());
-                            },
-                            child: const Text('Ver más'),
-                          ),
+                : searchResults.isEmpty
+                    ? const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.search_off,
+                              size: 64,
+                              color: Colors.grey,
+                            ),
+                            SizedBox(height: 16),
+                            Text(
+                              'No se encontraron cursos',
+                              style: TextStyle(fontSize: 18, color: Colors.grey),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              'Intenta con otros términos de búsqueda',
+                              style: TextStyle(fontSize: 14, color: Colors.grey),
+                            ),
+                          ],
                         ),
-                      );
-                    },
-                  ),
+                      )
+                    : ListView.builder(
+                        itemCount: searchResults.length,
+                        itemBuilder: (context, index) {
+                          final course = searchResults[index];
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            child: ListTile(
+                              title: Text(
+                                course.title,
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Por: ${course.creatorName}'),
+                                  Text(
+                                    course.description,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Wrap(
+                                    spacing: 4,
+                                    children: course.categories.take(2).map<Widget>((category) {
+                                      return Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: Colors.blue[100],
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Text(
+                                          category,
+                                          style: const TextStyle(fontSize: 10, color: Colors.blue),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ],
+                              ),
+                              trailing: ElevatedButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => CourseDetailScreen(course: course),
+                                    ),
+                                  ).then((_) => _loadUserCourses());
+                                },
+                                child: const Text('Ver más'),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
           ),
         ],
       ),

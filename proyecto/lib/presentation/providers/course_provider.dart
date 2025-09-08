@@ -60,7 +60,7 @@ class CourseProvider extends ChangeNotifier {
     notifyListeners();
     _courses = await getCoursesUseCase();
     _filteredCourses = _courses;
-    _searchResults = _courses;
+    _searchResults = []; // Inicializar como lista vacía
     _isLoading = false;
     notifyListeners();
   }
@@ -161,7 +161,7 @@ class CourseProvider extends ChangeNotifier {
 
   void clearSearch() {
     _searchQuery = '';
-    _searchResults = _courses;
+    _searchResults = [];
     notifyListeners();
   }
 
