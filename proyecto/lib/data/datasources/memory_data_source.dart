@@ -15,6 +15,11 @@ class InMemoryDataSource {
   ];
 
   UserEntity? get currentUser => _currentUser;
+  set currentUser(UserEntity? value) => _currentUser = value;
+  
+  // Getters para acceso desde clases hijas
+  List<CourseEntity> get courses => _courses;
+  Map<String, (String name, String password)> get users => _users;
 
   Future<UserEntity?> login(String username, String password) async {
     await Future<void>.delayed(const Duration(milliseconds: 200));
