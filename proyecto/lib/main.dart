@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'presentation/screens/log_in.dart';
 import 'presentation/screens/home_page.dart';
 import 'presentation/screens/profile_screen.dart';
-import 'package:proyecto/data/datasources/memory_data_source.dart';
+import 'package:proyecto/data/datasources/persistent_data_source.dart';
 import 'package:proyecto/data/repositories/auth_repository_impl.dart';
 import 'package:proyecto/data/repositories/course_repository_impl.dart';
 import 'package:proyecto/Domain/usecases/login_usecase.dart';
@@ -13,48 +13,71 @@ import 'package:proyecto/Domain/usecases/create_course_usecase.dart';
 import 'package:proyecto/presentation/providers/auth_provider.dart';
 import 'package:proyecto/presentation/providers/course_provider.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final dataSource = InMemoryDataSource();
-    final authRepo = AuthRepositoryImpl(dataSource);
-    final courseRepo = CourseRepositoryImpl(dataSource);
+  State<MyApp> createState() => _MyAppState();
+}
 
+class _MyAppState extends State<MyApp> {
+  late final PersistentDataSource _dataSource;
+  late final AuthRepositoryImpl _authRepo;
+  late final CourseRepositoryImpl _courseRepo;
+
+  @override
+  void initState() {
+    super.initState();
+    _dataSource = PersistentDataSource();
+    _authRepo = AuthRepositoryImpl(_dataSource);
+    _courseRepo = CourseRepositoryImpl(_dataSource);
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    await _dataSource.initialize();
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<AuthProvider>(
           create: (_) => AuthProvider(
-            loginUseCase: LoginUseCase(authRepo),
-            registerUseCase: RegisterUseCase(authRepo),
+            loginUseCase: LoginUseCase(_authRepo),
+            registerUseCase: RegisterUseCase(_authRepo),
           ),
         ),
         ChangeNotifierProvider<CourseProvider>(
           create: (_) => CourseProvider(
-            getCoursesUseCase: GetCoursesUseCase(courseRepo),
-            createCourseUseCase: CreateCourseUseCase(courseRepo),
+            getCoursesUseCase: GetCoursesUseCase(_courseRepo),
+            createCourseUseCase: CreateCourseUseCase(_courseRepo),
           )..loadCourses(),
         ),
       ],
       child: MaterialApp(
-      title: 'Clases App',
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const LoginPage(),
-        '/home': (context) => const HomePage(),
-        '/perfil': (context) {
-          final args =
-              ModalRoute.of(context)?.settings.arguments as String? ??
-              'Usuario';
-          return ProfileScreen(usuario: args);
+        title: 'Clases App',
+        initialRoute: '/',
+        routes: {
+          '/': (context) => const LoginPage(),
+          '/home': (context) => const HomePage(),
+          '/perfil': (context) {
+            final args =
+                ModalRoute.of(context)?.settings.arguments as String? ??
+                'Usuario';
+            return ProfileScreen(usuario: args);
+          },
         },
-      },
-    ));
+      ),
+    );
   }
 }
 
