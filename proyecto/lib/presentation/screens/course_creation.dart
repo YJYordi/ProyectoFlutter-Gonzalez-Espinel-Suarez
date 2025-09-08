@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:proyecto/presentation/providers/course_provider.dart';
+import 'package:proyecto/presentation/providers/auth_provider.dart';
 
 class CourseCreationScreen extends StatefulWidget {
   const CourseCreationScreen({super.key});
@@ -13,17 +14,24 @@ class _CourseCreationScreenState extends State<CourseCreationScreen> {
   int _selectedIndex = 0;
   final _formKey = GlobalKey<FormState>();
   final _courseTitleController = TextEditingController();
-  final _groupSizeController = TextEditingController(text: '5');
-  final _groupPrefixController = TextEditingController();
+  final _courseDescriptionController = TextEditingController();
+  final _maxEnrollmentsController = TextEditingController(text: '10');
   
-  String _groupingMethod = 'random';
-  bool _showAdvancedOptions = false;
-  bool _setStartDate = false;
-  bool _setEndDate = false;
-  DateTime? _startDate;
-  DateTime? _endDate;
-  TimeOfDay? _startTime;
-  TimeOfDay? _endTime;
+  final List<String> _availableCategories = [
+    'Desarrollo Backend',
+    'Desarrollo Frontend', 
+    'Desarrollo Full Stack',
+    'Desarrollo Web',
+    'Docker',
+    'Diseño Web',
+    'UX/UI',
+    'Bases de Datos',
+    'Flutter Básico',
+    'Flutter Intermedio',
+    'Flutter Avanzado',
+  ];
+  
+  List<String> _selectedCategories = [];
 
   @override
   Widget build(BuildContext context) {
@@ -58,92 +66,82 @@ class _CourseCreationScreenState extends State<CourseCreationScreen> {
               ),
               const SizedBox(height: 20),
               
-              // Tamaño del grupo
+              // Descripción del curso
               TextFormField(
-                controller: _groupSizeController,
+                controller: _courseDescriptionController,
                 decoration: const InputDecoration(
-                  labelText: 'Tamaño del Grupo',
+                  labelText: 'Descripción del Curso',
                   border: OutlineInputBorder(),
                 ),
-                keyboardType: TextInputType.number,
+                maxLines: 3,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Por favor ingresa el tamaño del grupo';
-                  }
-                  final n = int.tryParse(value);
-                  if (n == null || n < 2) {
-                    return 'El tamaño debe ser un número mayor a 1';
+                    return 'Por favor ingresa una descripción para el curso';
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 20),
               
-              // Método de agrupamiento
-              const Text(
-                'Método de Agrupamiento',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Radio<String>(
-                    value: 'random',
-                    groupValue: _groupingMethod,
-                    onChanged: (value) {
-                      setState(() {
-                        _groupingMethod = value!;
-                      });
-                    },
-                  ),
-                  const Text('Creación Aleatoria de Grupos'),
-                ],
-              ),
-              Row(
-                children: [
-                  Radio<String>(
-                    value: 'self',
-                    groupValue: _groupingMethod,
-                    onChanged: (value) {
-                      setState(() {
-                        _groupingMethod = value!;
-                      });
-                    },
-                  ),
-                  const Text('Autoinscripción'),
-                ],
+              // Límite de inscripciones
+              TextFormField(
+                controller: _maxEnrollmentsController,
+                decoration: const InputDecoration(
+                  labelText: 'Límite de Inscripciones',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Por favor ingresa el límite de inscripciones';
+                  }
+                  final n = int.tryParse(value);
+                  if (n == null || n < 1) {
+                    return 'El límite debe ser un número mayor a 0';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 20),
               
-              // Opciones avanzadas
-              Row(
-                children: [
-                  Checkbox(
-                    value: _showAdvancedOptions,
-                    onChanged: (value) {
+              // Categorías
+              const Text(
+                'Categorías (Selecciona entre 1 y 3)',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _availableCategories.map((category) {
+                  final isSelected = _selectedCategories.contains(category);
+                  return FilterChip(
+                    label: Text(category),
+                    selected: isSelected,
+                    onSelected: (selected) {
                       setState(() {
-                        _showAdvancedOptions = value!;
+                        if (selected) {
+                          if (_selectedCategories.length < 3) {
+                            _selectedCategories.add(category);
+                          }
+                        } else {
+                          _selectedCategories.remove(category);
+                        }
                       });
                     },
+                  );
+                }).toList(),
+              ),
+              if (_selectedCategories.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.only(top: 8),
+                  child: Text(
+                    'Debes seleccionar al menos una categoría',
+                    style: TextStyle(color: Colors.red, fontSize: 12),
                   ),
-                  const Text('Mostrar opciones avanzadas'),
-                ],
-              ),
-              
-              if (_showAdvancedOptions) ...[
-                _buildAdvancedOptions(),
-                const SizedBox(height: 20),
-              ],
-              
-              // Prefijo del grupo
-              TextFormField(
-                controller: _groupPrefixController,
-                decoration: const InputDecoration(
-                  labelText: 'Prefijo del Grupo (Opcional)',
-                  border: OutlineInputBorder(),
-                  hintText: 'Ej: Grupo',
                 ),
-              ),
+              const SizedBox(height: 20),
+              
               const SizedBox(height: 30),
               
               // Botones de acción
@@ -199,167 +197,45 @@ class _CourseCreationScreenState extends State<CourseCreationScreen> {
     );
   }
 
-  Widget _buildAdvancedOptions() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 16),
-        const Text(
-          'Opciones Avanzadas',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 10),
-        
-        // Fecha de inicio
-        Row(
-          children: [
-            Checkbox(
-              value: _setStartDate,
-              onChanged: (value) {
-                setState(() {
-                  _setStartDate = value!;
-                });
-              },
-            ),
-            const Text('Establecer fecha de inicio de la autoinscripción'),
-          ],
-        ),
-        if (_setStartDate) ...[
-          Row(
-            children: [
-              Expanded(
-                child: TextButton(
-                  onPressed: () async {
-                    final date = await showDatePicker(
-                      context: context,
-                      initialDate: DateTime.now(),
-                      firstDate: DateTime.now(),
-                      lastDate: DateTime(2030),
-                    );
-                    if (date != null) {
-                      setState(() {
-                        _startDate = date;
-                      });
-                    }
-                  },
-                  child: Text(
-                    _startDate != null
-                        ? '${_startDate!.day}/${_startDate!.month}/${_startDate!.year}'
-                        : 'Seleccionar fecha',
-                  ),
-                ),
-              ),
-              Expanded(
-                child: TextButton(
-                  onPressed: () async {
-                    final time = await showTimePicker(
-                      context: context,
-                      initialTime: TimeOfDay.now(),
-                    );
-                    if (time != null) {
-                      setState(() {
-                        _startTime = time;
-                      });
-                    }
-                  },
-                  child: Text(
-                    _startTime != null
-                        ? _startTime!.format(context)
-                        : 'Seleccionar hora',
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-        ],
-        
-        // Fecha de vencimiento
-        Row(
-          children: [
-            Checkbox(
-              value: _setEndDate,
-              onChanged: (value) {
-                setState(() {
-                  _setEndDate = value!;
-                });
-              },
-            ),
-            const Text('Establecer fecha de vencimiento de la autoinscripción'),
-          ],
-        ),
-        if (_setEndDate) ...[
-          Row(
-            children: [
-              Expanded(
-                child: TextButton(
-                  onPressed: () async {
-                    final date = await showDatePicker(
-                      context: context,
-                      initialDate: DateTime.now().add(const Duration(days: 7)),
-                      firstDate: DateTime.now(),
-                      lastDate: DateTime(2030),
-                    );
-                    if (date != null) {
-                      setState(() {
-                        _endDate = date;
-                      });
-                    }
-                  },
-                  child: Text(
-                    _endDate != null
-                        ? '${_endDate!.day}/${_endDate!.month}/${_endDate!.year}'
-                        : 'Seleccionar fecha',
-                  ),
-                ),
-              ),
-              Expanded(
-                child: TextButton(
-                  onPressed: () async {
-                    final time = await showTimePicker(
-                      context: context,
-                      initialTime: TimeOfDay.now(),
-                    );
-                    if (time != null) {
-                      setState(() {
-                        _endTime = time;
-                      });
-                    }
-                  },
-                  child: Text(
-                    _endTime != null
-                        ? _endTime!.format(context)
-                        : 'Seleccionar hora',
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ],
-    );
-  }
 
-  void _createCourse() {
-    if (_formKey.currentState!.validate()) {
+  void _createCourse() async {
+    if (_formKey.currentState!.validate() && _selectedCategories.isNotEmpty) {
       final courseTitle = _courseTitleController.text;
-      final groupSize = int.parse(_groupSizeController.text);
-      final groupPrefix = _groupPrefixController.text.isNotEmpty
-          ? _groupPrefixController.text
-          : null;
+      final courseDescription = _courseDescriptionController.text;
+      final maxEnrollments = int.parse(_maxEnrollmentsController.text);
 
-      final provider = context.read<CourseProvider>();
-      provider
-          .createCourse(title: courseTitle, groupSize: groupSize, groupPrefix: groupPrefix)
-          .then((_) => Navigator.of(context).pop());
+      final authProvider = context.read<AuthProvider>();
+      final courseProvider = context.read<CourseProvider>();
+      
+      if (authProvider.user != null) {
+        try {
+          await courseProvider.createCourse(
+            title: courseTitle,
+            description: courseDescription,
+            creatorUsername: authProvider.user!.username,
+            creatorName: authProvider.user!.name,
+            categories: _selectedCategories,
+            maxEnrollments: maxEnrollments,
+          );
+          if (mounted) {
+            Navigator.of(context).pop();
+          }
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(e.toString())),
+            );
+          }
+        }
+      }
     }
   }
 
   @override
   void dispose() {
     _courseTitleController.dispose();
-    _groupSizeController.dispose();
-    _groupPrefixController.dispose();
+    _courseDescriptionController.dispose();
+    _maxEnrollmentsController.dispose();
     super.dispose();
   }
 }

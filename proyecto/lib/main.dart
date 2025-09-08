@@ -10,6 +10,12 @@ import 'package:proyecto/Domain/usecases/login_usecase.dart';
 import 'package:proyecto/Domain/usecases/register_usecase.dart';
 import 'package:proyecto/Domain/usecases/get_courses_usecase.dart';
 import 'package:proyecto/Domain/usecases/create_course_usecase.dart';
+import 'package:proyecto/Domain/usecases/enroll_in_course_usecase.dart';
+import 'package:proyecto/Domain/usecases/get_course_enrollments_usecase.dart';
+import 'package:proyecto/Domain/usecases/delete_course_usecase.dart';
+import 'package:proyecto/Domain/usecases/unenroll_from_course_usecase.dart';
+import 'package:proyecto/Domain/usecases/get_courses_by_creator_usecase.dart';
+import 'package:proyecto/Domain/usecases/get_courses_by_student_usecase.dart';
 import 'package:proyecto/presentation/providers/auth_provider.dart';
 import 'package:proyecto/presentation/providers/course_provider.dart';
 
@@ -60,6 +66,13 @@ class _MyAppState extends State<MyApp> {
           create: (_) => CourseProvider(
             getCoursesUseCase: GetCoursesUseCase(_courseRepo),
             createCourseUseCase: CreateCourseUseCase(_courseRepo),
+            enrollInCourseUseCase: EnrollInCourseUseCase(_courseRepo),
+            getCourseEnrollmentsUseCase: GetCourseEnrollmentsUseCase(_courseRepo),
+            deleteCourseUseCase: DeleteCourseUseCase(_courseRepo),
+            unenrollFromCourseUseCase: UnenrollFromCourseUseCase(_courseRepo),
+            getCoursesByCreatorUseCase: GetCoursesByCreatorUseCase(_courseRepo),
+            getCoursesByStudentUseCase: GetCoursesByStudentUseCase(_courseRepo),
+            courseRepository: _courseRepo,
           )..loadCourses(),
         ),
       ],

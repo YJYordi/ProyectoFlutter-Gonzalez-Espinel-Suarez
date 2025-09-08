@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:proyecto/presentation/screens/course_creation.dart';
+import 'package:proyecto/presentation/screens/course_detail_screen.dart';
 import 'package:proyecto/presentation/providers/course_provider.dart';
+import 'package:proyecto/presentation/providers/auth_provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -16,14 +18,32 @@ class _HomePageState extends State<HomePage> {
   bool _estudianteExpanded = false;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadUserCourses();
+    });
+  }
+
+  void _loadUserCourses() {
+    final authProvider = context.read<AuthProvider>();
+    final courseProvider = context.read<CourseProvider>();
+    
+    if (authProvider.user != null) {
+      courseProvider.loadCreatedCourses(authProvider.user!.username);
+      courseProvider.loadEnrolledCourses(authProvider.user!.username);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final String usuario =
         ModalRoute.of(context)?.settings.arguments as String? ?? 'Usuario';
 
     final courseProvider = context.watch<CourseProvider>();
-    final cursos = courseProvider.courses
-        .map((c) => {'titulo': c.title, 'descripcion': c.description})
-        .toList();
+    final cursos = courseProvider.courses;
+    final createdCourses = courseProvider.createdCourses;
+    final enrolledCourses = courseProvider.enrolledCourses;
 
     final List<Widget> _pages = [
       // INICIO
@@ -74,29 +94,50 @@ class _HomePageState extends State<HomePage> {
                   ExpansionPanel(
                     canTapOnHeader: true,
                     headerBuilder: (context, isExpanded) {
-                      return ListTile(title: const Text('Profesor (0 cursos)'));
+                      return ListTile(
+                        title: Text('Profesor (${createdCourses.length} cursos)'),
+                      );
                     },
                     body: Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16.0,
                         vertical: 8,
                       ),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                          Navigator.push(
-                          context,
-                            MaterialPageRoute(builder: (context) => const CourseCreationScreen()),
-                          );
-                        },
-                          icon: const Icon(Icons.add),
-                          label: const Text('Crear curso'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.black,
-                            foregroundColor: Colors.white,
-                          ),
-                        ),
+                      child: Column(
+                        children: [
+                          if (createdCourses.length < 3)
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: ElevatedButton.icon(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const CourseCreationScreen()),
+                                  ).then((_) => _loadUserCourses());
+                                },
+                                icon: const Icon(Icons.add),
+                                label: const Text('Crear curso'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.black,
+                                  foregroundColor: Colors.white,
+                                ),
+                              ),
+                            )
+                          else
+                            const Text(
+                              'Has alcanzado el límite de 3 cursos',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          if (createdCourses.isNotEmpty) ...[
+                            const SizedBox(height: 16),
+                            const Text(
+                              'Mis cursos:',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 8),
+                            ...createdCourses.map((course) => _buildCourseCard(course, true)),
+                          ],
+                        ],
                       ),
                     ),
                     isExpanded: _profesorExpanded,
@@ -105,7 +146,7 @@ class _HomePageState extends State<HomePage> {
                     canTapOnHeader: true,
                     headerBuilder: (context, isExpanded) {
                       return ListTile(
-                        title: const Text('Estudiante (0 cursos)'),
+                        title: Text('Estudiante (${enrolledCourses.length} cursos)'),
                       );
                     },
                     body: Padding(
@@ -113,10 +154,21 @@ class _HomePageState extends State<HomePage> {
                         horizontal: 16.0,
                         vertical: 8,
                       ),
-                      child: const Text(
-                        'No estás inscrito en ningún curso.',
-                        style: TextStyle(color: Colors.grey),
-                      ),
+                      child: enrolledCourses.isEmpty
+                          ? const Text(
+                              'No estás inscrito en ningún curso.',
+                              style: TextStyle(color: Colors.grey),
+                            )
+                          : Column(
+                              children: [
+                                const Text(
+                                  'Mis inscripciones:',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 8),
+                                ...enrolledCourses.map((course) => _buildCourseCard(course, false)),
+                              ],
+                            ),
                     ),
                     isExpanded: _estudianteExpanded,
                   ),
@@ -130,7 +182,7 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 12),
               SizedBox(
-                height: 180,
+                height: 200,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: cursos.length,
@@ -143,26 +195,70 @@ class _HomePageState extends State<HomePage> {
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Container(
-                        width: 220,
+                        width: 240,
                         padding: const EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              curso['titulo']!,
+                              curso.title,
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              curso['descripcion']!,
-                              style: const TextStyle(fontSize: 14),
+                              'Por: ${curso.creatorName}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              curso.description,
+                              style: const TextStyle(fontSize: 12),
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 8),
+                            // Categorías
+                            Wrap(
+                              spacing: 4,
+                              runSpacing: 4,
+                              children: curso.categories.take(2).map<Widget>((category) {
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue[100],
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    category,
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.blue,
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
                             ),
                             const Spacer(),
                             ElevatedButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => CourseDetailScreen(course: curso),
+                                  ),
+                                );
+                              },
                               child: const Text('Ver curso'),
                             ),
                           ],
@@ -250,6 +346,57 @@ class _HomePageState extends State<HomePage> {
           ),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCourseCard(course, bool isCreated) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        title: Text(
+          course.title,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: isCreated ? null : Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Por: ${course.creatorName}'),
+            Text(
+              course.description,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 4),
+            Wrap(
+              spacing: 4,
+              children: course.categories.take(2).map<Widget>((category) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[100],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    category,
+                    style: const TextStyle(fontSize: 10, color: Colors.blue),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+        trailing: ElevatedButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CourseDetailScreen(course: course),
+              ),
+            ).then((_) => _loadUserCourses());
+          },
+          child: const Text('Ver más'),
+        ),
       ),
     );
   }

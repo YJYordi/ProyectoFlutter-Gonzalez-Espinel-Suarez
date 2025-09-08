@@ -2,16 +2,19 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:proyecto/Domain/Entities/course.dart';
 import 'package:proyecto/Domain/Entities/user.dart';
+import 'package:proyecto/Domain/Entities/course_enrollment.dart';
 import 'package:proyecto/data/datasources/memory_data_source.dart';
 
 class PersistentDataSource extends InMemoryDataSource {
   static const String _usersKey = 'stored_users';
   static const String _coursesKey = 'stored_courses';
+  static const String _enrollmentsKey = 'stored_enrollments';
   static const String _currentUserKey = 'current_user';
 
   Future<void> initialize() async {
     await _loadUsers();
     await _loadCourses();
+    await _loadEnrollments();
     await _loadCurrentUser();
   }
 
@@ -41,8 +44,34 @@ class PersistentDataSource extends InMemoryDataSource {
       for (final courseData in coursesList) {
         if (courseData is Map<String, dynamic>) {
           courses.add(CourseEntity(
+            id: courseData['id'] as String,
             title: courseData['title'] as String,
             description: courseData['description'] as String,
+            creatorUsername: courseData['creatorUsername'] as String,
+            creatorName: courseData['creatorName'] as String,
+            categories: List<String>.from(courseData['categories'] as List),
+            maxEnrollments: courseData['maxEnrollments'] as int,
+            createdAt: DateTime.parse(courseData['createdAt'] as String),
+          ));
+        }
+      }
+    }
+  }
+
+  Future<void> _loadEnrollments() async {
+    final prefs = await SharedPreferences.getInstance();
+    final enrollmentsJson = prefs.getString(_enrollmentsKey);
+    if (enrollmentsJson != null) {
+      final List<dynamic> enrollmentsList = jsonDecode(enrollmentsJson);
+      enrollments.clear();
+      for (final enrollmentData in enrollmentsList) {
+        if (enrollmentData is Map<String, dynamic>) {
+          enrollments.add(CourseEnrollment(
+            id: enrollmentData['id'] as String,
+            courseId: enrollmentData['courseId'] as String,
+            username: enrollmentData['username'] as String,
+            userName: enrollmentData['userName'] as String,
+            enrolledAt: DateTime.parse(enrollmentData['enrolledAt'] as String),
           ));
         }
       }
@@ -76,10 +105,28 @@ class PersistentDataSource extends InMemoryDataSource {
   Future<void> _saveCourses() async {
     final prefs = await SharedPreferences.getInstance();
     final coursesList = courses.map((course) => {
+      'id': course.id,
       'title': course.title,
       'description': course.description,
+      'creatorUsername': course.creatorUsername,
+      'creatorName': course.creatorName,
+      'categories': course.categories,
+      'maxEnrollments': course.maxEnrollments,
+      'createdAt': course.createdAt.toIso8601String(),
     }).toList();
     await prefs.setString(_coursesKey, jsonEncode(coursesList));
+  }
+
+  Future<void> _saveEnrollments() async {
+    final prefs = await SharedPreferences.getInstance();
+    final enrollmentsList = enrollments.map((enrollment) => {
+      'id': enrollment.id,
+      'courseId': enrollment.courseId,
+      'username': enrollment.username,
+      'userName': enrollment.userName,
+      'enrolledAt': enrollment.enrolledAt.toIso8601String(),
+    }).toList();
+    await prefs.setString(_enrollmentsKey, jsonEncode(enrollmentsList));
   }
 
   Future<void> _saveCurrentUser() async {
@@ -117,8 +164,49 @@ class PersistentDataSource extends InMemoryDataSource {
   }
 
   @override
-  Future<void> createCourse({required String title, required int groupSize, String? groupPrefix}) async {
-    await super.createCourse(title: title, groupSize: groupSize, groupPrefix: groupPrefix);
+  Future<void> createCourse({
+    required String title,
+    required String description,
+    required String creatorUsername,
+    required String creatorName,
+    required List<String> categories,
+    required int maxEnrollments,
+  }) async {
+    await super.createCourse(
+      title: title,
+      description: description,
+      creatorUsername: creatorUsername,
+      creatorName: creatorName,
+      categories: categories,
+      maxEnrollments: maxEnrollments,
+    );
     await _saveCourses();
+  }
+
+  @override
+  Future<void> enrollInCourse({
+    required String courseId,
+    required String username,
+    required String userName,
+  }) async {
+    await super.enrollInCourse(
+      courseId: courseId,
+      username: username,
+      userName: userName,
+    );
+    await _saveEnrollments();
+  }
+
+  @override
+  Future<void> deleteCourse(String courseId, String creatorUsername) async {
+    await super.deleteCourse(courseId, creatorUsername);
+    await _saveCourses();
+    await _saveEnrollments();
+  }
+
+  @override
+  Future<void> unenrollFromCourse(String courseId, String username) async {
+    await super.unenrollFromCourse(courseId, username);
+    await _saveEnrollments();
   }
 }
