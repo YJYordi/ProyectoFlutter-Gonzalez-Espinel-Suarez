@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:proyecto/presentation/providers/course_provider.dart';
 
 class CourseCreationScreen extends StatefulWidget {
   const CourseCreationScreen({super.key});
@@ -340,18 +342,16 @@ class _CourseCreationScreenState extends State<CourseCreationScreen> {
 
   void _createCourse() {
     if (_formKey.currentState!.validate()) {
-      // Lógica para crear el curso
       final courseTitle = _courseTitleController.text;
       final groupSize = int.parse(_groupSizeController.text);
       final groupPrefix = _groupPrefixController.text.isNotEmpty
           ? _groupPrefixController.text
           : null;
-      
-      // Aquí iría la lógica para guardar el curso
-      print('Curso creado: $courseTitle, Tamaño: $groupSize, Prefijo: $groupPrefix');
-      
-      // Navegar de vuelta al homepage
-      Navigator.of(context).pop();
+
+      final provider = context.read<CourseProvider>();
+      provider
+          .createCourse(title: courseTitle, groupSize: groupSize, groupPrefix: groupPrefix)
+          .then((_) => Navigator.of(context).pop());
     }
   }
 

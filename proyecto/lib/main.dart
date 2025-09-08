@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'presentation/screens/log_in.dart';
 import 'presentation/screens/home_page.dart';
 import 'presentation/screens/profile_screen.dart';
+import 'package:proyecto/data/datasources/memory_data_source.dart';
+import 'package:proyecto/data/repositories/auth_repository_impl.dart';
+import 'package:proyecto/data/repositories/course_repository_impl.dart';
+import 'package:proyecto/Domain/usecases/login_usecase.dart';
+import 'package:proyecto/Domain/usecases/get_courses_usecase.dart';
+import 'package:proyecto/Domain/usecases/create_course_usecase.dart';
+import 'package:proyecto/presentation/providers/auth_provider.dart';
+import 'package:proyecto/presentation/providers/course_provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,7 +21,23 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    final dataSource = InMemoryDataSource();
+    final authRepo = AuthRepositoryImpl(dataSource);
+    final courseRepo = CourseRepositoryImpl(dataSource);
+
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<AuthProvider>(
+          create: (_) => AuthProvider(loginUseCase: LoginUseCase(authRepo)),
+        ),
+        ChangeNotifierProvider<CourseProvider>(
+          create: (_) => CourseProvider(
+            getCoursesUseCase: GetCoursesUseCase(courseRepo),
+            createCourseUseCase: CreateCourseUseCase(courseRepo),
+          )..loadCourses(),
+        ),
+      ],
+      child: MaterialApp(
       title: 'Clases App',
       initialRoute: '/',
       routes: {
@@ -25,7 +50,7 @@ class MyApp extends StatelessWidget {
           return ProfileScreen(usuario: args);
         },
       },
-    );
+    ));
   }
 }
 
