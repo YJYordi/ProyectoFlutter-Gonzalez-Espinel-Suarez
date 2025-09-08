@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:proyecto/presentation/providers/auth_provider.dart';
 
 class ProfileScreen extends StatelessWidget {
   final String usuario;
@@ -6,6 +8,8 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loggedUser = context.watch<AuthProvider>().user;
+    final displayName = loggedUser?.username ?? usuario;
     return Scaffold(
       appBar: AppBar(title: const Text('Perfil')),
       body: Padding(
@@ -17,7 +21,7 @@ class ProfileScreen extends StatelessWidget {
               child: CircleAvatar(
                 radius: 48,
                 child: Text(
-                  usuario.isNotEmpty ? usuario[0].toUpperCase() : '?',
+                  displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
                   style: const TextStyle(fontSize: 40),
                 ),
               ),
@@ -26,7 +30,7 @@ class ProfileScreen extends StatelessWidget {
             // Nombre usuario
             Center(
               child: Text(
-                usuario,
+                displayName,
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,

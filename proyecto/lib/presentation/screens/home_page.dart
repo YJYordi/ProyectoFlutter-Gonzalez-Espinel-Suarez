@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:proyecto/presentation/screens/course_creation.dart';
+import 'package:proyecto/presentation/providers/course_provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -18,19 +20,10 @@ class _HomePageState extends State<HomePage> {
     final String usuario =
         ModalRoute.of(context)?.settings.arguments as String? ?? 'Usuario';
 
-    // Ejemplo de cursos
-    final cursos = [
-      {'titulo': 'Flutter Básico', 'descripcion': 'Aprende Flutter desde cero'},
-      {
-        'titulo': 'Dart Intermedio',
-        'descripcion': 'Mejora tus habilidades en Dart',
-      },
-      {'titulo': 'UI Avanzada', 'descripcion': 'Crea interfaces atractivas'},
-      {
-        'titulo': 'Backend con Firebase',
-        'descripcion': 'Conecta tu app a la nube',
-      },
-    ];
+    final courseProvider = context.watch<CourseProvider>();
+    final cursos = courseProvider.courses
+        .map((c) => {'titulo': c.title, 'descripcion': c.description})
+        .toList();
 
     final List<Widget> _pages = [
       // INICIO
