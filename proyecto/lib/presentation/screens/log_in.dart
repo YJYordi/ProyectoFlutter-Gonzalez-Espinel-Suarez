@@ -188,16 +188,6 @@ class _LoginPageState extends State<LoginPage> {
             ),
             
             const SizedBox(height: 20),
-            
-            // Información de usuarios de prueba
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.blue[50],
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.blue[200]!),
-              ),
-            ),
           ],
         ),
       ),
