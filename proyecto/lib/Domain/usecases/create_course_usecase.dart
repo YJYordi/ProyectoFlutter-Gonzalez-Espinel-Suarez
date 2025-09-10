@@ -11,6 +11,8 @@ class CreateCourseUseCase {
     required String creatorName,
     required List<String> categories,
     required int maxEnrollments,
+    required bool isRandomAssignment,
+    int? groupSize,
   }) {
     return courseRepository.createCourse(
       title: title,
@@ -19,6 +21,8 @@ class CreateCourseUseCase {
       creatorName: creatorName,
       categories: categories,
       maxEnrollments: maxEnrollments,
+      isRandomAssignment: false,
+      groupSize: groupSize,
     );
   }
 }

@@ -161,7 +161,10 @@ class PersistentDataSource extends InMemoryDataSource {
     required String creatorName,
     required List<String> categories,
     required int maxEnrollments,
+    required bool isRandomAssignment,
+    int? groupSize,
   }) async {
+    int? groupSize;
     await super.createCourse(
       title: title,
       description: description,
@@ -169,6 +172,8 @@ class PersistentDataSource extends InMemoryDataSource {
       creatorName: creatorName,
       categories: categories,
       maxEnrollments: maxEnrollments,
+      isRandomAssignment: isRandomAssignment,
+      groupSize: groupSize,
     );
     await _saveCourses();
   }
@@ -294,7 +299,9 @@ class PersistentDataSource extends InMemoryDataSource {
         createdAt: DateTime.now().subtract(const Duration(days: 20)),
         schedule: 'Lunes y Miércoles 18:00-20:00',
         location: 'Aula 101',
-        price: 150.0,
+        price: 150.0, 
+        isRandomAssignment: false,
+        groupSize: null,
       ),
       CourseEntity(
         id: 'course_2',
@@ -308,7 +315,9 @@ class PersistentDataSource extends InMemoryDataSource {
         createdAt: DateTime.now().subtract(const Duration(days: 15)),
         schedule: 'Martes y Jueves 16:00-18:00',
         location: 'Laboratorio de Diseño',
-        price: 120.0,
+        price: 120.0, 
+        isRandomAssignment: false,
+        groupSize: null,
       ),
       CourseEntity(
         id: 'course_3',
@@ -322,7 +331,9 @@ class PersistentDataSource extends InMemoryDataSource {
         createdAt: DateTime.now().subtract(const Duration(days: 10)),
         schedule: 'Viernes 14:00-17:00',
         location: 'Aula 205',
-        price: 180.0,
+        price: 180.0, 
+        isRandomAssignment: false,
+        groupSize: null,
       ),
       CourseEntity(
         id: 'course_4',
@@ -336,7 +347,9 @@ class PersistentDataSource extends InMemoryDataSource {
         createdAt: DateTime.now().subtract(const Duration(days: 5)),
         schedule: 'Sábados 09:00-12:00',
         location: 'Laboratorio de IA',
-        price: 200.0,
+        price: 200.0, 
+        isRandomAssignment: false,
+        groupSize: null,
       ),
     ];
 

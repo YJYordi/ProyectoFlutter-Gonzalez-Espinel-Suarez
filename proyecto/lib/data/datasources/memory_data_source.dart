@@ -66,7 +66,7 @@ class InMemoryDataSource {
     required String creatorUsername,
     required String creatorName,
     required List<String> categories,
-    required int maxEnrollments,
+    required int maxEnrollments, required bool isRandomAssignment, int? groupSize,
   }) async {
     final courseId = DateTime.now().millisecondsSinceEpoch.toString();
     final course = CourseEntity(
@@ -81,7 +81,9 @@ class InMemoryDataSource {
       createdAt: DateTime.now(),
       schedule: 'Por definir',
       location: 'Por definir',
-      price: 0.0,
+      price: 0.0, 
+      isRandomAssignment: false, // o false según corresponda
+      groupSize: null, // o un valor entero si aplica
     );
     _courses.add(course);
   }

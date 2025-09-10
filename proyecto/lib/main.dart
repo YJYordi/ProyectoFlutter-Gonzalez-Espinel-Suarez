@@ -22,6 +22,7 @@ import 'package:proyecto/presentation/providers/course_provider.dart';
 import 'package:proyecto/presentation/screens/category_courses_screen.dart';
 import 'package:proyecto/presentation/screens/sign_up.dart';
 import 'package:proyecto/presentation/screens/course_detail_screen.dart';
+import 'package:proyecto/presentation/screens/course_management_screen.dart';
 import 'package:proyecto/Domain/Entities/course.dart';
 
 void main() async {
@@ -102,6 +103,15 @@ class _MyAppState extends State<MyApp> {
           '/category_courses': (context) {
             final args = ModalRoute.of(context)?.settings.arguments as String;
             return CategoryCoursesScreen(category: args);
+          },
+          '/course_management': (context) {
+            final course = ModalRoute.of(context)?.settings.arguments as CourseEntity;
+            final authProvider = Provider.of<AuthProvider>(context, listen: false);
+            final currentUser = authProvider.user;
+            if (currentUser == null) {
+              return const LoginPage();
+            }
+            return CourseManagementScreen(course: course, currentUser: currentUser);
           },
         },
       ),

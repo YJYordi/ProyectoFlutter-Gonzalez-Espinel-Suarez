@@ -11,6 +11,8 @@ abstract class CourseRepository {
     required String creatorName,
     required List<String> categories,
     required int maxEnrollments,
+    required bool isRandomAssignment,
+    int? groupSize,
   });
   Future<List<CourseEnrollment>> getCourseEnrollments(String courseId);
   Future<void> enrollInCourse({

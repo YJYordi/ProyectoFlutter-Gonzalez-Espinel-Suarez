@@ -15,8 +15,11 @@ class _CourseCreationScreenState extends State<CourseCreationScreen> {
   final _formKey = GlobalKey<FormState>();
   final _courseTitleController = TextEditingController();
   final _courseDescriptionController = TextEditingController();
-  final _maxEnrollmentsController = TextEditingController(text: '10');
+  final _maxEnrollmentsController = TextEditingController(text: '20');
   
+  bool _isRandomAssignment = true;
+  int? _groupSize;
+
   final List<String> _availableCategories = [
     'Desarrollo Backend',
     'Desarrollo Frontend', 
@@ -104,9 +107,72 @@ class _CourseCreationScreenState extends State<CourseCreationScreen> {
               ),
               const SizedBox(height: 20),
               
+              // Asignación aleatoria
+              Row(
+                children: [
+                  const Text(
+                    'Asignación Aleatoria',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const Spacer(),
+                  Switch(
+                    value: _isRandomAssignment,
+                    onChanged: (value) {
+                      setState(() {
+                        _isRandomAssignment = value;
+                        if (value) {
+                          _groupSize = null;
+                        }
+                      });
+                    },
+                  ),
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Text(
+                  'Esta opción determina cómo se asignarán los grupos de las categorías. Si está activada, los grupos se asignarán de forma aleatoria por el sistema. Si está desactivada, los usuarios podrán auto inscribirse y definir el tamaño de los grupos.',
+                  style: const TextStyle(fontSize: 14, color: Colors.black87),
+                ),
+              ),
+              if (!_isRandomAssignment) ...[
+                const SizedBox(height: 10),
+                TextFormField(
+                  initialValue: _groupSize?.toString(),
+                  decoration: const InputDecoration(
+                    labelText: 'Tamaño del Grupo',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor ingresa el tamaño del grupo';
+                    }
+                    final n = int.tryParse(value);
+                    if (n == null || n < 1) {
+                      return 'El tamaño del grupo debe ser un número mayor a 0';
+                    }
+                    return null;
+                  },
+                  onChanged: (value) {
+                    setState(() {
+                      _groupSize = int.tryParse(value);
+                    });
+                  },
+                ),
+                if (_groupSize == null || _groupSize! < 1)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 8),
+                    child: Text(
+                      'El tamaño del grupo debe ser un número mayor a 0',
+                      style: TextStyle(color: Colors.red, fontSize: 12),
+                    ),
+                  ),
+              ],
+              const SizedBox(height: 20),
               // Categorías
               const Text(
-                'Categorías (Selecciona entre 1 y 3)',
+                'Categorías',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
@@ -121,9 +187,7 @@ class _CourseCreationScreenState extends State<CourseCreationScreen> {
                     onSelected: (selected) {
                       setState(() {
                         if (selected) {
-                          if (_selectedCategories.length < 3) {
-                            _selectedCategories.add(category);
-                          }
+                          _selectedCategories.add(category);
                         } else {
                           _selectedCategories.remove(category);
                         }
@@ -131,6 +195,39 @@ class _CourseCreationScreenState extends State<CourseCreationScreen> {
                     },
                   );
                 }).toList(),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      decoration: const InputDecoration(
+                        labelText: 'Nueva categoría',
+                        border: OutlineInputBorder(),
+                      ),
+                      onFieldSubmitted: (value) {
+                        if (value.isNotEmpty && !_availableCategories.contains(value)) {
+                          setState(() {
+                            _availableCategories.add(value);
+                            _selectedCategories.add(value);
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      // El botón no hace nada, la categoría se añade al presionar Enter
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                    ),
+                    child: const Text('Añadir'),
+                  ),
+                ],
               ),
               if (_selectedCategories.isEmpty)
                 const Padding(
@@ -140,8 +237,6 @@ class _CourseCreationScreenState extends State<CourseCreationScreen> {
                     style: TextStyle(color: Colors.red, fontSize: 12),
                   ),
                 ),
-              const SizedBox(height: 20),
-              
               const SizedBox(height: 30),
               
               // Botones de acción
@@ -216,6 +311,8 @@ class _CourseCreationScreenState extends State<CourseCreationScreen> {
             creatorName: authProvider.user!.name,
             categories: _selectedCategories,
             maxEnrollments: maxEnrollments,
+            isRandomAssignment: _isRandomAssignment,
+            groupSize: _groupSize,
           );
           if (mounted) {
             Navigator.of(context).pop();

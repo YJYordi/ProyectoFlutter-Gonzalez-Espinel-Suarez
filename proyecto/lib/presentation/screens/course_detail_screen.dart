@@ -4,6 +4,7 @@ import 'package:proyecto/Domain/Entities/course.dart';
 import 'package:proyecto/Domain/Entities/course_enrollment.dart';
 import 'package:proyecto/presentation/providers/auth_provider.dart';
 import 'package:proyecto/presentation/providers/course_provider.dart';
+import 'package:proyecto/presentation/screens/course_management_screen.dart';
 
 class CourseDetailScreen extends StatefulWidget {
   final CourseEntity course;
@@ -137,6 +138,28 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.black,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => CourseManagementScreen(
+                    course: widget.course,
+                    currentUser: context.read<AuthProvider>().user!,
+                  ),
+                ),
+              );
+            },
+            child: const Text('Gestionar'),
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -279,7 +302,6 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                       ],
                     ],
                   ),
-                  
                   const SizedBox(height: 16),
                   
                   // Lista de usuarios inscritos
@@ -338,4 +360,5 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   String _formatDate(DateTime date) {
     return '${date.day}/${date.month}/${date.year}';
   }
+  
 }
