@@ -10,28 +10,38 @@ class PersistentDataSource extends InMemoryDataSource {
   static const String _coursesKey = 'stored_courses';
   static const String _enrollmentsKey = 'stored_enrollments';
   static const String _currentUserKey = 'current_user';
+  static const String _rememberUserKey = 'remember_user';
+  static const String _savedUsernameKey = 'saved_username';
+  static const String _savedPasswordKey = 'saved_password';
 
   Future<void> initialize() async {
     await _loadUsers();
     await _loadCourses();
     await _loadEnrollments();
     await _loadCurrentUser();
+    await _loadRememberUserSettings();
+    
+    // Si no hay datos, cargar datos precargados
+    if (users.isEmpty) {
+      await _loadPreloadedData();
+    }
   }
 
   Future<void> _loadUsers() async {
     final prefs = await SharedPreferences.getInstance();
     final usersJson = prefs.getString(_usersKey);
     if (usersJson != null) {
-      final Map<String, dynamic> usersMap = jsonDecode(usersJson);
+      final List<dynamic> usersList = jsonDecode(usersJson);
       users.clear();
-      usersMap.forEach((username, userData) {
+      for (final userData in usersList) {
         if (userData is Map<String, dynamic>) {
-          users[username] = (
-            userData['name'] as String,
-            userData['password'] as String,
+          final user = UserEntity.fromJson(userData);
+          users[user.username] = (
+            user.name,
+            user.password,
           );
         }
-      });
+      }
     }
   }
 
@@ -43,16 +53,7 @@ class PersistentDataSource extends InMemoryDataSource {
       courses.clear();
       for (final courseData in coursesList) {
         if (courseData is Map<String, dynamic>) {
-          courses.add(CourseEntity(
-            id: courseData['id'] as String,
-            title: courseData['title'] as String,
-            description: courseData['description'] as String,
-            creatorUsername: courseData['creatorUsername'] as String,
-            creatorName: courseData['creatorName'] as String,
-            categories: List<String>.from(courseData['categories'] as List),
-            maxEnrollments: courseData['maxEnrollments'] as int,
-            createdAt: DateTime.parse(courseData['createdAt'] as String),
-          ));
+          courses.add(CourseEntity.fromJson(courseData));
         }
       }
     }
@@ -83,37 +84,29 @@ class PersistentDataSource extends InMemoryDataSource {
     final userJson = prefs.getString(_currentUserKey);
     if (userJson != null) {
       final userData = jsonDecode(userJson) as Map<String, dynamic>;
-      currentUser = UserEntity(
-        username: userData['username'] as String,
-        name: userData['name'] as String,
-      );
+      currentUser = UserEntity.fromJson(userData);
     }
   }
 
   Future<void> _saveUsers() async {
     final prefs = await SharedPreferences.getInstance();
-    final usersMap = <String, dynamic>{};
+    final usersList = <Map<String, dynamic>>[];
     users.forEach((username, userData) {
-      usersMap[username] = {
+      usersList.add({
+        'username': username,
         'name': userData.$1,
         'password': userData.$2,
-      };
+        'email': '$username@example.com', // Email por defecto
+        'role': 'student', // Rol por defecto
+        'createdAt': DateTime.now().toIso8601String(),
+      });
     });
-    await prefs.setString(_usersKey, jsonEncode(usersMap));
+    await prefs.setString(_usersKey, jsonEncode(usersList));
   }
 
   Future<void> _saveCourses() async {
     final prefs = await SharedPreferences.getInstance();
-    final coursesList = courses.map((course) => {
-      'id': course.id,
-      'title': course.title,
-      'description': course.description,
-      'creatorUsername': course.creatorUsername,
-      'creatorName': course.creatorName,
-      'categories': course.categories,
-      'maxEnrollments': course.maxEnrollments,
-      'createdAt': course.createdAt.toIso8601String(),
-    }).toList();
+    final coursesList = courses.map((course) => course.toJson()).toList();
     await prefs.setString(_coursesKey, jsonEncode(coursesList));
   }
 
@@ -132,10 +125,7 @@ class PersistentDataSource extends InMemoryDataSource {
   Future<void> _saveCurrentUser() async {
     final prefs = await SharedPreferences.getInstance();
     if (currentUser != null) {
-      await prefs.setString(_currentUserKey, jsonEncode({
-        'username': currentUser!.username,
-        'name': currentUser!.name,
-      }));
+      await prefs.setString(_currentUserKey, jsonEncode(currentUser!.toJson()));
     } else {
       await prefs.remove(_currentUserKey);
     }
@@ -208,5 +198,153 @@ class PersistentDataSource extends InMemoryDataSource {
   Future<void> unenrollFromCourse(String courseId, String username) async {
     await super.unenrollFromCourse(courseId, username);
     await _saveEnrollments();
+  }
+
+  // Métodos para manejar "recordar usuario"
+  Future<void> _loadRememberUserSettings() async {
+    // Cargar configuración de recordar usuario si es necesaria
+    // Los valores se cargan cuando se necesitan en getRememberedCredentials()
+  }
+
+  Future<void> saveRememberUserSettings({
+    required bool rememberUser,
+    String? username,
+    String? password,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_rememberUserKey, rememberUser);
+    
+    if (rememberUser && username != null && password != null) {
+      await prefs.setString(_savedUsernameKey, username);
+      await prefs.setString(_savedPasswordKey, password);
+    } else {
+      await prefs.remove(_savedUsernameKey);
+      await prefs.remove(_savedPasswordKey);
+    }
+  }
+
+  Future<Map<String, String?>> getRememberedCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    final rememberUser = prefs.getBool(_rememberUserKey) ?? false;
+    
+    if (rememberUser) {
+      return {
+        'username': prefs.getString(_savedUsernameKey),
+        'password': prefs.getString(_savedPasswordKey),
+      };
+    }
+    
+    return {'username': null, 'password': null};
+  }
+
+  // Método para cargar datos precargados
+  Future<void> _loadPreloadedData() async {
+    // Datos precargados de usuarios
+    final preloadedUsers = [
+      UserEntity(
+        username: 'estudiante1',
+        name: 'Ana García',
+        email: 'ana.garcia@example.com',
+        password: '123456',
+        role: UserRole.student,
+        createdAt: DateTime.now().subtract(const Duration(days: 30)),
+      ),
+      UserEntity(
+        username: 'estudiante2',
+        name: 'Carlos López',
+        email: 'carlos.lopez@example.com',
+        password: '123456',
+        role: UserRole.student,
+        createdAt: DateTime.now().subtract(const Duration(days: 25)),
+      ),
+      UserEntity(
+        username: 'profesor1',
+        name: 'Dr. María Rodríguez',
+        email: 'maria.rodriguez@example.com',
+        password: '123456',
+        role: UserRole.teacher,
+        createdAt: DateTime.now().subtract(const Duration(days: 60)),
+      ),
+      UserEntity(
+        username: 'profesor2',
+        name: 'Prof. Juan Martínez',
+        email: 'juan.martinez@example.com',
+        password: '123456',
+        role: UserRole.teacher,
+        createdAt: DateTime.now().subtract(const Duration(days: 45)),
+      ),
+    ];
+
+    // Agregar usuarios precargados
+    for (final user in preloadedUsers) {
+      users[user.username] = (user.name, user.password);
+    }
+
+    // Datos precargados de cursos
+    final preloadedCourses = [
+      CourseEntity(
+        id: 'course_1',
+        title: 'Programación en Flutter',
+        description: 'Aprende a desarrollar aplicaciones móviles con Flutter y Dart',
+        creatorUsername: 'profesor1',
+        creatorName: 'Dr. María Rodríguez',
+        categories: ['Programación', 'Móvil', 'Flutter'],
+        maxEnrollments: 25,
+        currentEnrollments: 15,
+        createdAt: DateTime.now().subtract(const Duration(days: 20)),
+        schedule: 'Lunes y Miércoles 18:00-20:00',
+        location: 'Aula 101',
+        price: 150.0,
+      ),
+      CourseEntity(
+        id: 'course_2',
+        title: 'Diseño UI/UX',
+        description: 'Fundamentos del diseño de interfaces de usuario y experiencia',
+        creatorUsername: 'profesor2',
+        creatorName: 'Prof. Juan Martínez',
+        categories: ['Diseño', 'UI/UX', 'Creatividad'],
+        maxEnrollments: 20,
+        currentEnrollments: 12,
+        createdAt: DateTime.now().subtract(const Duration(days: 15)),
+        schedule: 'Martes y Jueves 16:00-18:00',
+        location: 'Laboratorio de Diseño',
+        price: 120.0,
+      ),
+      CourseEntity(
+        id: 'course_3',
+        title: 'Base de Datos Avanzadas',
+        description: 'Manejo avanzado de bases de datos relacionales y NoSQL',
+        creatorUsername: 'profesor1',
+        creatorName: 'Dr. María Rodríguez',
+        categories: ['Base de Datos', 'SQL', 'NoSQL'],
+        maxEnrollments: 30,
+        currentEnrollments: 18,
+        createdAt: DateTime.now().subtract(const Duration(days: 10)),
+        schedule: 'Viernes 14:00-17:00',
+        location: 'Aula 205',
+        price: 180.0,
+      ),
+      CourseEntity(
+        id: 'course_4',
+        title: 'Inteligencia Artificial',
+        description: 'Introducción a la IA y machine learning',
+        creatorUsername: 'profesor2',
+        creatorName: 'Prof. Juan Martínez',
+        categories: ['IA', 'Machine Learning', 'Python'],
+        maxEnrollments: 15,
+        currentEnrollments: 8,
+        createdAt: DateTime.now().subtract(const Duration(days: 5)),
+        schedule: 'Sábados 09:00-12:00',
+        location: 'Laboratorio de IA',
+        price: 200.0,
+      ),
+    ];
+
+    // Agregar cursos precargados
+    courses.addAll(preloadedCourses);
+
+    // Guardar datos precargados
+    await _saveUsers();
+    await _saveCourses();
   }
 }

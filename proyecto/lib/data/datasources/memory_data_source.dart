@@ -23,7 +23,14 @@ class InMemoryDataSource {
     await Future<void>.delayed(const Duration(milliseconds: 200));
     final entry = _users[username];
     if (entry != null && entry.$2 == password) {
-      _currentUser = UserEntity(username: username, name: entry.$1);
+      _currentUser = UserEntity(
+        username: username, 
+        name: entry.$1,
+        email: '$username@example.com',
+        password: password,
+        role: UserRole.student, // Los usuarios pueden ser tanto estudiantes como profesores
+        createdAt: DateTime.now(),
+      );
       return _currentUser;
     }
     return null;
@@ -38,7 +45,14 @@ class InMemoryDataSource {
       throw ArgumentError('El usuario ya existe');
     }
     _users[username] = (name, password);
-    return UserEntity(username: username, name: name);
+    return UserEntity(
+      username: username, 
+      name: name,
+      email: '$username@example.com',
+      password: password,
+      role: UserRole.student, // Los usuarios pueden ser tanto estudiantes como profesores
+      createdAt: DateTime.now(),
+    );
   }
 
   Future<List<CourseEntity>> getCourses() async {
@@ -63,7 +77,11 @@ class InMemoryDataSource {
       creatorName: creatorName,
       categories: categories,
       maxEnrollments: maxEnrollments,
+      currentEnrollments: 0,
       createdAt: DateTime.now(),
+      schedule: 'Por definir',
+      location: 'Por definir',
+      price: 0.0,
     );
     _courses.add(course);
   }
