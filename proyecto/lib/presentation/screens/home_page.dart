@@ -369,8 +369,6 @@ class _HomePageState extends State<HomePage> {
       ),
       // EXPLORAR
       _buildExplorePage(),
-      // CONTACTOS
-      const Center(child: Text('Contactos', style: TextStyle(fontSize: 24))),
       // PENDIENTES
       const Center(child: Text('Pendientes', style: TextStyle(fontSize: 24))),
       // PERFIL
@@ -384,7 +382,7 @@ class _HomePageState extends State<HomePage> {
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
         onTap: (index) {
-          if (index == 4) {
+          if (index == 3) {
             // Navegar a la pantalla de perfil
             Navigator.pushNamed(context, '/perfil', arguments: displayName);
           } else {
@@ -398,7 +396,6 @@ class _HomePageState extends State<HomePage> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Explorar'),
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Contactos'),
           BottomNavigationBarItem(
             icon: Icon(Icons.list_alt),
             label: 'Pendientes',
