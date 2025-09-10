@@ -11,6 +11,8 @@ class CourseEntity {
   final String schedule;
   final String location;
   final double price;
+  final bool isRandomAssignment; // true: random, false: auto-asignación
+  final int? groupSize; // solo relevante si isRandomAssignment == false
 
   const CourseEntity({
     required this.id,
@@ -25,6 +27,8 @@ class CourseEntity {
     required this.schedule,
     required this.location,
     required this.price,
+    required this.isRandomAssignment,
+    this.groupSize,
   });
 
   Map<String, dynamic> toJson() {
@@ -41,6 +45,8 @@ class CourseEntity {
       'schedule': schedule,
       'location': location,
       'price': price,
+      'isRandomAssignment': isRandomAssignment,
+      'groupSize': groupSize,
     };
   }
 
@@ -58,6 +64,8 @@ class CourseEntity {
       schedule: json['schedule'],
       location: json['location'],
       price: json['price'].toDouble(),
+      isRandomAssignment: json['isRandomAssignment'],
+      groupSize: json['groupSize'],
     );
   }
 
@@ -74,6 +82,8 @@ class CourseEntity {
     String? schedule,
     String? location,
     double? price,
+    bool? isRandomAssignment,
+    int? groupSize,
   }) {
     return CourseEntity(
       id: id ?? this.id,
@@ -88,6 +98,8 @@ class CourseEntity {
       schedule: schedule ?? this.schedule,
       location: location ?? this.location,
       price: price ?? this.price,
+      isRandomAssignment: isRandomAssignment ?? this.isRandomAssignment,
+      groupSize: groupSize ?? this.groupSize,
     );
   }
 }

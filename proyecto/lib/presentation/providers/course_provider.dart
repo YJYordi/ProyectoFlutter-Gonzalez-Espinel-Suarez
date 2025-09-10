@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:proyecto/Domain/Entities/course.dart';
 import 'package:proyecto/Domain/Entities/course_enrollment.dart';
@@ -32,6 +33,9 @@ class CourseProvider extends ChangeNotifier {
   bool _isLoading = false;
   String _selectedCategory = '';
   String _searchQuery = '';
+
+  // Simulación de estructura de grupos por categoría
+  final Map<String, Map<String, List<String>>> _courseGroups = {}; // {courseId: {category: [usernames]}}
 
   CourseProvider({
     required this.getCoursesUseCase,
@@ -82,6 +86,8 @@ class CourseProvider extends ChangeNotifier {
     required String creatorName,
     required List<String> categories,
     required int maxEnrollments,
+    required bool isRandomAssignment,
+    int? groupSize,
   }) async {
     if (_createdCourses.length >= 3) {
       throw Exception('No puedes crear más de 3 cursos');
@@ -94,6 +100,8 @@ class CourseProvider extends ChangeNotifier {
       creatorName: creatorName,
       categories: categories,
       maxEnrollments: maxEnrollments,
+      isRandomAssignment: isRandomAssignment,
+      groupSize: groupSize,
     );
     await loadCourses();
     await loadCreatedCourses(creatorUsername);
@@ -135,6 +143,27 @@ class CourseProvider extends ChangeNotifier {
     await loadCreatedCourses(creatorUsername);
   }
 
+  Future<void> updateRandomAssignment(String courseId, bool isRandom) async {
+    // Busca el curso por id y actualiza la propiedad
+    final index = _courses.indexWhere((c) => c.id == courseId);
+    if (index != -1) {
+      final updatedCourse = _courses[index].copyWith(isRandomAssignment: isRandom);
+      _courses[index] = updatedCourse;
+      // Si usas persistencia, guarda el cambio aquí
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateGroupSize(String courseId, int? groupSize) async {
+    final index = _courses.indexWhere((c) => c.id == courseId);
+    if (index != -1) {
+      final updatedCourse = _courses[index].copyWith(groupSize: groupSize);
+      _courses[index] = updatedCourse;
+      // Si usas persistencia, guarda el cambio aquí
+      notifyListeners();
+    }
+  }
+
   Future<void> filterCoursesByCategory(String category) async {
     _selectedCategory = category;
     if (category.isEmpty) {
@@ -170,6 +199,53 @@ class CourseProvider extends ChangeNotifier {
     _filteredCourses = _courses;
     notifyListeners();
   }
+
+  // Obtener el grupo de una categoría en un curso
+  GroupInfo getGroupForCategory(String courseId, String category) {
+    final members = _courseGroups[courseId]?[category] ?? [];
+    return GroupInfo(members: members);
+  }
+
+  // Verifica si el usuario está en algún grupo de ese curso
+  bool isAnyGroupJoined(String courseId, String username) {
+    final groups = _courseGroups[courseId];
+    if (groups == null) return false;
+    return groups.values.any((members) => members.contains(username));
+  }
+
+  // Unirse a un grupo/categoría
+  void joinGroup(String courseId, String category, String username) {
+    _courseGroups.putIfAbsent(courseId, () => {});
+    _courseGroups[courseId]!.putIfAbsent(category, () => []);
+    // Solo permite unirse si no está en ningún grupo
+    if (!isAnyGroupJoined(courseId, username)) {
+      _courseGroups[courseId]![category]!.add(username);
+      notifyListeners();
+    }
+  }
+
+  // Salir de un grupo/categoría
+  void leaveGroup(String courseId, String category, String username) {
+    _courseGroups[courseId]?[category]?.remove(username);
+    notifyListeners();
+  }
+
+  // Navegar a la pantalla de evaluación (por definir)
+  void showEvaluations(BuildContext context, String courseId, String category) {
+    // Aquí puedes navegar a la screen de evaluación cuando la definas
+    // Navigator.push(context, MaterialPageRoute(builder: (_) => EvaluationScreen(courseId: courseId, category: category)));
+    // Por ahora solo muestra un mensaje
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Funcionalidad de evaluación pendiente')),
+    );
+  }
+
+  // Clase auxiliar para grupo
+}
+
+class GroupInfo {
+  final List<String> members;
+  GroupInfo({required this.members});
 }
 
 

@@ -16,6 +16,8 @@ class CourseRepositoryImpl implements CourseRepository {
     required String creatorName,
     required List<String> categories,
     required int maxEnrollments,
+    required bool isRandomAssignment,
+    int? groupSize,
   }) {
     return dataSource.createCourse(
       title: title,
@@ -24,6 +26,8 @@ class CourseRepositoryImpl implements CourseRepository {
       creatorName: creatorName,
       categories: categories,
       maxEnrollments: maxEnrollments,
+      isRandomAssignment: isRandomAssignment,
+      groupSize: groupSize,
     );
   }
 
