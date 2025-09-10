@@ -34,6 +34,11 @@ class AuthProvider extends ChangeNotifier {
       return e.toString();
     }
   }
+
+  void logout() {
+    _user = null;
+    notifyListeners();
+  }
 }
 
 

@@ -37,15 +37,15 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final String usuario =
-        ModalRoute.of(context)?.settings.arguments as String? ?? 'Usuario';
+    final authProvider = context.watch<AuthProvider>();
+    final String displayName = authProvider.user?.name ?? 'Usuario';
 
     final courseProvider = context.watch<CourseProvider>();
     final cursos = courseProvider.courses;
     final createdCourses = courseProvider.createdCourses;
     final enrolledCourses = courseProvider.enrolledCourses;
 
-    final List<Widget> _pages = [
+    final List<Widget> pages = [
       // INICIO
       SingleChildScrollView(
         child: Padding(
@@ -56,20 +56,20 @@ class _HomePageState extends State<HomePage> {
               // Saludo
               Row(
                 children: [
-                  CircleAvatar(child: Text(usuario[0].toUpperCase())),
+                  CircleAvatar(child: Text(displayName[0].toUpperCase())),
                   const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Hola, $usuario',
+                        'Hola, $displayName',
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const Text(
-                        'Estudiante & Profesora',
+                        'Estudiante & Profesor',
                         style: TextStyle(fontSize: 14, color: Colors.grey),
                       ),
                     ],
@@ -379,14 +379,14 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Inicio')),
-      body: _pages[_selectedIndex],
+      body: pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
         onTap: (index) {
           if (index == 4) {
             // Navegar a la pantalla de perfil
-            Navigator.pushNamed(context, '/perfil', arguments: usuario);
+            Navigator.pushNamed(context, '/perfil', arguments: displayName);
           } else {
             setState(() {
               _selectedIndex = index;
