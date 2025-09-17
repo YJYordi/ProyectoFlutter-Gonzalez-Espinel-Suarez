@@ -1,6 +1,7 @@
 import 'package:proyecto/Domain/Entities/course.dart';
 import 'package:proyecto/Domain/Entities/user.dart';
 import 'package:proyecto/Domain/Entities/course_enrollment.dart';
+import 'package:proyecto/Domain/Entities/category.dart';
 
 class InMemoryDataSource {
   UserEntity? _currentUser;
@@ -10,6 +11,7 @@ class InMemoryDataSource {
 
   final List<CourseEntity> _courses = <CourseEntity>[];
   final List<CourseEnrollment> _enrollments = <CourseEnrollment>[];
+  final List<CategoryEntity> _categories = <CategoryEntity>[];
 
   UserEntity? get currentUser => _currentUser;
   set currentUser(UserEntity? value) => _currentUser = value;
@@ -17,6 +19,7 @@ class InMemoryDataSource {
   // Getters para acceso desde clases hijas
   List<CourseEntity> get courses => _courses;
   List<CourseEnrollment> get enrollments => _enrollments;
+  List<CategoryEntity> get categories => _categories;
   Map<String, (String name, String password)> get users => _users;
 
   Future<UserEntity?> login(String username, String password) async {
@@ -152,6 +155,38 @@ class InMemoryDataSource {
         .toSet();
     
     return _courses.where((course) => enrolledCourseIds.contains(course.id)).toList();
+  }
+
+  // Category management methods
+  Future<List<CategoryEntity>> getCategoriesByCourse(String courseId) async {
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    return _categories.where((category) => category.courseId == courseId).toList();
+  }
+
+  Future<CategoryEntity?> getCategoryById(String categoryId) async {
+    try {
+      return _categories.firstWhere((category) => category.id == categoryId);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<void> createCategory(CategoryEntity category) async {
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    _categories.add(category);
+  }
+
+  Future<void> updateCategory(CategoryEntity category) async {
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    final index = _categories.indexWhere((c) => c.id == category.id);
+    if (index != -1) {
+      _categories[index] = category;
+    }
+  }
+
+  Future<void> deleteCategory(String categoryId) async {
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    _categories.removeWhere((category) => category.id == categoryId);
   }
 }
 

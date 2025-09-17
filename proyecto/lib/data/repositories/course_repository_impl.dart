@@ -1,5 +1,6 @@
 import 'package:proyecto/Domain/Entities/course.dart';
 import 'package:proyecto/Domain/Entities/course_enrollment.dart';
+import 'package:proyecto/Domain/Entities/category.dart';
 import 'package:proyecto/Domain/repositories/course_repository.dart';
 import 'package:proyecto/data/datasources/memory_data_source.dart';
 
@@ -87,6 +88,31 @@ class CourseRepositoryImpl implements CourseRepository {
   @override
   Future<List<CourseEntity>> getCoursesByStudent(String username) {
     return dataSource.getCoursesByStudent(username);
+  }
+
+  @override
+  Future<List<CategoryEntity>> getCategoriesByCourse(String courseId) {
+    return dataSource.getCategoriesByCourse(courseId);
+  }
+
+  @override
+  Future<CategoryEntity?> getCategoryById(String categoryId) {
+    return dataSource.getCategoryById(categoryId);
+  }
+
+  @override
+  Future<void> createCategory(CategoryEntity category) {
+    return dataSource.createCategory(category);
+  }
+
+  @override
+  Future<void> updateCategory(CategoryEntity category) {
+    return dataSource.updateCategory(category);
+  }
+
+  @override
+  Future<void> deleteCategory(String categoryId) {
+    return dataSource.deleteCategory(categoryId);
   }
 }
 

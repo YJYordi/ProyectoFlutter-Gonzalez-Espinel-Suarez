@@ -17,8 +17,15 @@ import 'package:proyecto/Domain/usecases/unenroll_from_course_usecase.dart';
 import 'package:proyecto/Domain/usecases/get_courses_by_creator_usecase.dart';
 import 'package:proyecto/Domain/usecases/get_courses_by_student_usecase.dart';
 import 'package:proyecto/Domain/usecases/get_courses_by_category_usecase.dart';
+import 'package:proyecto/Domain/usecases/create_category_usecase.dart';
+import 'package:proyecto/Domain/usecases/delete_category_usecase.dart';
+import 'package:proyecto/Domain/usecases/edit_category_usecase.dart';
+import 'package:proyecto/Domain/usecases/enroll_category_usecase.dart';
+import 'package:proyecto/Domain/usecases/unenroll_category_usecase.dart';
 import 'package:proyecto/presentation/providers/auth_provider.dart';
 import 'package:proyecto/presentation/providers/course_provider.dart';
+import 'package:proyecto/presentation/providers/category_provider.dart';
+import 'package:proyecto/presentation/providers/role_provider.dart';
 import 'package:proyecto/presentation/screens/category_courses_screen.dart';
 import 'package:proyecto/presentation/screens/sign_up.dart';
 import 'package:proyecto/presentation/screens/course_detail_screen.dart';
@@ -81,6 +88,19 @@ class _MyAppState extends State<MyApp> {
             getCoursesByCategoryUseCase: GetCoursesByCategoryUseCase(_courseRepo),
             courseRepository: _courseRepo,
           )..loadCourses(),
+        ),
+        ChangeNotifierProvider<CategoryProvider>(
+          create: (_) => CategoryProvider(
+            repository: _courseRepo,
+            createCategoryUseCase: CreateCategoryUseCase(_courseRepo),
+            deleteCategoryUseCase: DeleteCategoryUseCase(_courseRepo),
+            editCategoryUseCase: EditCategoryUseCase(_courseRepo),
+            enrollCategoryUseCase: EnrollCategoryUseCase(_courseRepo),
+            unenrollCategoryUseCase: UnenrollCategoryUseCase(_courseRepo),
+          ),
+        ),
+        ChangeNotifierProvider<RoleProvider>(
+          create: (_) => RoleProvider()..initializeRole(),
         ),
       ],
       child: MaterialApp(
