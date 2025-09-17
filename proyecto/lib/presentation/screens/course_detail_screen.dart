@@ -71,18 +71,6 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     }
   }
 
-  Future<void> _unenrollFromCourse() async {
-    final authProvider = context.read<AuthProvider>();
-    final courseProvider = context.read<CourseProvider>();
-    
-    if (authProvider.user != null) {
-      await courseProvider.unenrollFromCourse(
-        widget.course.id,
-        authProvider.user!.username,
-      );
-      await _loadCourseDetails();
-    }
-  }
 
   Future<void> _deleteCourse() async {
     final authProvider = context.read<AuthProvider>();
@@ -139,26 +127,28 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.black,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => CourseManagementScreen(
-                    course: widget.course,
-                    currentUser: context.read<AuthProvider>().user!,
+          // Botón de gestión - solo para el creador del curso
+          if (authProvider.user?.username == widget.course.creatorUsername)
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CourseManagementScreen(
+                      course: widget.course,
+                      currentUser: context.read<AuthProvider>().user!,
+                    ),
                   ),
-                ),
-              );
-            },
-            child: const Text('Gestionar'),
-          ),
+                );
+              },
+              child: const Text('Gestionar'),
+            ),
         ],
       ),
       body: _isLoading
@@ -204,9 +194,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                             style: const TextStyle(fontSize: 14),
                           ),
                           const SizedBox(height: 16),
-                          // Categorías
+                          // Tags
                           const Text(
-                            'Categorías:',
+                            'Tags:',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -265,13 +255,24 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                       else if (_isEnrolled)
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: _unenrollFromCourse,
+                            onPressed: () {
+                              // Navegar a la vista del curso
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => CourseManagementScreen(
+                                    course: widget.course,
+                                    currentUser: context.read<AuthProvider>().user!,
+                                  ),
+                                ),
+                              );
+                            },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
+                              backgroundColor: Colors.green,
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 16),
                             ),
-                            child: const Text('Desinscribirse'),
+                            child: const Text('Empezar'),
                           ),
                         )
                       else
@@ -286,22 +287,25 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                             child: const Text('Curso lleno'),
                           ),
                         ),
-                      
-                      // Botón de eliminar (solo para el creador)
-                      if (authProvider.user?.username == widget.course.creatorUsername) ...[
-                        const SizedBox(width: 8),
-                        ElevatedButton(
-                          onPressed: _deleteCourse,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red[700],
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                          ),
-                          child: const Icon(Icons.delete),
-                        ),
-                      ],
                     ],
                   ),
+                  
+                  // Botón de eliminar (solo para el creador)
+                  if (authProvider.user?.username == widget.course.creatorUsername) ...[
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _deleteCourse,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red[700],
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                        ),
+                        child: const Icon(Icons.delete),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   
                   // Lista de usuarios inscritos
