@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:proyecto/data/datasources/remote_data_source.dart';
 import 'presentation/screens/log_in.dart';
 import 'presentation/screens/home_page.dart';
 import 'presentation/screens/profile_screen.dart';
@@ -38,21 +39,26 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  late final PersistentDataSource _dataSource;
+  late final RemoteDataSource _dataSource;
+  late final PersistentDataSource _dataSourcePer;
   late final AuthRepositoryImpl _authRepo;
   late final CourseRepositoryImpl _courseRepo;
 
   @override
   void initState() {
     super.initState();
-    _dataSource = PersistentDataSource();
+    _dataSource = RemoteDataSource(
+      baseUrl:
+          "https://roble-api.openlab.uninorte.edu.co/auth/proyectoflutter_c35bbd8fbe",
+    );
+    _dataSourcePer = PersistentDataSource();
     _authRepo = AuthRepositoryImpl(_dataSource);
-    _courseRepo = CourseRepositoryImpl(_dataSource);
+    _courseRepo = CourseRepositoryImpl(_dataSourcePer);
     _initializeApp();
   }
 
   Future<void> _initializeApp() async {
-    await _dataSource.initialize();
+    await _dataSourcePer.initialize();
     if (mounted) {
       setState(() {});
     }
@@ -73,12 +79,16 @@ class _MyAppState extends State<MyApp> {
             getCoursesUseCase: GetCoursesUseCase(_courseRepo),
             createCourseUseCase: CreateCourseUseCase(_courseRepo),
             enrollInCourseUseCase: EnrollInCourseUseCase(_courseRepo),
-            getCourseEnrollmentsUseCase: GetCourseEnrollmentsUseCase(_courseRepo),
+            getCourseEnrollmentsUseCase: GetCourseEnrollmentsUseCase(
+              _courseRepo,
+            ),
             deleteCourseUseCase: DeleteCourseUseCase(_courseRepo),
             unenrollFromCourseUseCase: UnenrollFromCourseUseCase(_courseRepo),
             getCoursesByCreatorUseCase: GetCoursesByCreatorUseCase(_courseRepo),
             getCoursesByStudentUseCase: GetCoursesByStudentUseCase(_courseRepo),
-            getCoursesByCategoryUseCase: GetCoursesByCategoryUseCase(_courseRepo),
+            getCoursesByCategoryUseCase: GetCoursesByCategoryUseCase(
+              _courseRepo,
+            ),
             courseRepository: _courseRepo,
           )..loadCourses(),
         ),
@@ -97,7 +107,8 @@ class _MyAppState extends State<MyApp> {
           },
           '/signup': (context) => const SignUpPage(),
           '/course_detail': (context) {
-            final args = ModalRoute.of(context)?.settings.arguments as CourseEntity;
+            final args =
+                ModalRoute.of(context)?.settings.arguments as CourseEntity;
             return CourseDetailScreen(course: args);
           },
           '/category_courses': (context) {
@@ -105,13 +116,20 @@ class _MyAppState extends State<MyApp> {
             return CategoryCoursesScreen(category: args);
           },
           '/course_management': (context) {
-            final course = ModalRoute.of(context)?.settings.arguments as CourseEntity;
-            final authProvider = Provider.of<AuthProvider>(context, listen: false);
+            final course =
+                ModalRoute.of(context)?.settings.arguments as CourseEntity;
+            final authProvider = Provider.of<AuthProvider>(
+              context,
+              listen: false,
+            );
             final currentUser = authProvider.user;
             if (currentUser == null) {
               return const LoginPage();
             }
-            return CourseManagementScreen(course: course, currentUser: currentUser);
+            return CourseManagementScreen(
+              course: course,
+              currentUser: currentUser,
+            );
           },
         },
       ),

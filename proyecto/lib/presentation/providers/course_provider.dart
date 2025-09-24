@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:proyecto/Domain/Entities/course.dart';
 import 'package:proyecto/Domain/Entities/course_enrollment.dart';
 import 'package:proyecto/Domain/usecases/create_course_usecase.dart';
@@ -35,7 +34,8 @@ class CourseProvider extends ChangeNotifier {
   String _searchQuery = '';
 
   // Simulación de estructura de grupos por categoría
-  final Map<String, Map<String, List<String>>> _courseGroups = {}; // {courseId: {category: [usernames]}}
+  final Map<String, Map<String, List<String>>> _courseGroups =
+      {}; // {courseId: {category: [usernames]}}
 
   CourseProvider({
     required this.getCoursesUseCase,
@@ -92,7 +92,7 @@ class CourseProvider extends ChangeNotifier {
     if (_createdCourses.length >= 3) {
       throw Exception('No puedes crear más de 3 cursos');
     }
-    
+
     await createCourseUseCase(
       title: title,
       description: description,
@@ -123,7 +123,7 @@ class CourseProvider extends ChangeNotifier {
     if (_enrolledCourses.length >= 3) {
       throw Exception('No puedes inscribirte a más de 3 cursos');
     }
-    
+
     await enrollInCourseUseCase(
       courseId: courseId,
       username: username,
@@ -147,7 +147,9 @@ class CourseProvider extends ChangeNotifier {
     // Busca el curso por id y actualiza la propiedad
     final index = _courses.indexWhere((c) => c.id == courseId);
     if (index != -1) {
-      final updatedCourse = _courses[index].copyWith(isRandomAssignment: isRandom);
+      final updatedCourse = _courses[index].copyWith(
+        isRandomAssignment: isRandom,
+      );
       _courses[index] = updatedCourse;
       // Si usas persistencia, guarda el cambio aquí
       notifyListeners();
@@ -181,8 +183,8 @@ class CourseProvider extends ChangeNotifier {
     } else {
       _searchResults = _courses.where((course) {
         return course.title.toLowerCase().contains(query.toLowerCase()) ||
-               course.description.toLowerCase().contains(query.toLowerCase()) ||
-               course.creatorName.toLowerCase().contains(query.toLowerCase());
+            course.description.toLowerCase().contains(query.toLowerCase()) ||
+            course.creatorName.toLowerCase().contains(query.toLowerCase());
       }).toList();
     }
     notifyListeners();
@@ -247,5 +249,3 @@ class GroupInfo {
   final List<String> members;
   GroupInfo({required this.members});
 }
-
-

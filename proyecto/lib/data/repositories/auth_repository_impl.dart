@@ -1,9 +1,11 @@
 import 'package:proyecto/Domain/Entities/user.dart';
 import 'package:proyecto/Domain/repositories/auth_repository.dart';
-import 'package:proyecto/data/datasources/memory_data_source.dart';
+//import 'package:proyecto/data/datasources/memory_data_source.dart';
+import 'package:proyecto/data/datasources/remote_data_source.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
-  final InMemoryDataSource dataSource;
+  //final InMemoryDataSource dataSource;
+  final RemoteDataSource dataSource;
 
   AuthRepositoryImpl(this.dataSource);
 
@@ -11,7 +13,10 @@ class AuthRepositoryImpl implements AuthRepository {
   UserEntity? get currentUser => dataSource.currentUser;
 
   @override
-  Future<UserEntity?> login({required String username, required String password}) {
+  Future<UserEntity?> login({
+    required String username,
+    required String password,
+  }) {
     return dataSource.login(username, password);
   }
 
@@ -21,9 +26,15 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<UserEntity> register({required String name, required String username, required String password}) {
-    return dataSource.register(name: name, username: username, password: password);
+  Future<UserEntity> register({
+    required String name,
+    required String username,
+    required String password,
+  }) {
+    return dataSource.register(
+      name: name,
+      username: username,
+      password: password,
+    );
   }
 }
-
-
