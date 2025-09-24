@@ -7,6 +7,8 @@ import 'package:proyecto/presentation/providers/category_provider.dart';
 import 'package:proyecto/presentation/providers/role_provider.dart';
 import 'package:proyecto/presentation/widgets/category_form_widget.dart';
 import 'package:proyecto/presentation/widgets/group_members_modal.dart';
+import 'package:proyecto/presentation/screens/evaluation_screen.dart';
+import 'package:proyecto/presentation/screens/professor_evaluations_screen.dart';
 
 class CourseManagementScreen extends StatefulWidget {
   final CourseEntity course;
@@ -60,6 +62,14 @@ class _CourseManagementScreenState extends State<CourseManagementScreen> {
             backgroundColor: Colors.black,
             foregroundColor: Colors.white,
             actions: [
+              // Botón de evaluaciones para profesores
+              if (roleProvider.isProfessor) ...[
+                IconButton(
+                  icon: const Icon(Icons.assessment),
+                  onPressed: () => _navigateToProfessorEvaluations(),
+                  tooltip: 'Ver Evaluaciones',
+                ),
+              ],
               // Indicador de rol
               Container(
                 margin: const EdgeInsets.only(right: 16),
@@ -360,12 +370,7 @@ class _CourseManagementScreenState extends State<CourseManagementScreen> {
             ),
             const SizedBox(width: 8),
             ElevatedButton(
-              onPressed: () {
-                // TODO: Implementar evaluación
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Funcionalidad de evaluación en desarrollo')),
-                );
-              },
+              onPressed: () => _navigateToEvaluation(category, group),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
                 foregroundColor: Colors.white,
@@ -398,6 +403,32 @@ class _CourseManagementScreenState extends State<CourseManagementScreen> {
                 );
               }
             : null,
+      ),
+    );
+  }
+
+  void _navigateToEvaluation(CategoryEntity category, GroupEntity group) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EvaluationScreen(
+          course: widget.course,
+          category: category,
+          group: group,
+          evaluatorUsername: widget.currentUser.username,
+        ),
+      ),
+    );
+  }
+
+  void _navigateToProfessorEvaluations() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProfessorEvaluationsScreen(
+          course: widget.course,
+          professorUsername: widget.currentUser.username,
+        ),
       ),
     );
   }

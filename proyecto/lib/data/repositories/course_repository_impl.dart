@@ -1,6 +1,7 @@
 import 'package:proyecto/Domain/Entities/course.dart';
 import 'package:proyecto/Domain/Entities/course_enrollment.dart';
 import 'package:proyecto/Domain/Entities/category.dart';
+import 'package:proyecto/Domain/Entities/evaluation.dart';
 import 'package:proyecto/Domain/repositories/course_repository.dart';
 import 'package:proyecto/data/datasources/memory_data_source.dart';
 
@@ -113,6 +114,85 @@ class CourseRepositoryImpl implements CourseRepository {
   @override
   Future<void> deleteCategory(String categoryId) {
     return dataSource.deleteCategory(categoryId);
+  }
+
+  // Evaluation management methods
+  @override
+  Future<void> createEvaluation(EvaluationEntity evaluation) {
+    return dataSource.createEvaluation(evaluation);
+  }
+
+  @override
+  Future<void> updateEvaluation(EvaluationEntity evaluation) {
+    return dataSource.updateEvaluation(evaluation);
+  }
+
+  @override
+  Future<EvaluationEntity?> getEvaluationById(String evaluationId) {
+    return dataSource.getEvaluationById(evaluationId);
+  }
+
+  @override
+  Future<EvaluationEntity?> getEvaluation({
+    required String courseId,
+    required String categoryId,
+    required String groupId,
+    required String evaluatorUsername,
+    required String evaluatedUsername,
+  }) {
+    return dataSource.getEvaluation(
+      courseId: courseId,
+      categoryId: categoryId,
+      groupId: groupId,
+      evaluatorUsername: evaluatorUsername,
+      evaluatedUsername: evaluatedUsername,
+    );
+  }
+
+  @override
+  Future<List<EvaluationEntity>> getEvaluationsByGroup({
+    required String courseId,
+    required String categoryId,
+    required String groupId,
+    required String evaluatorUsername,
+  }) {
+    return dataSource.getEvaluationsByGroup(
+      courseId: courseId,
+      categoryId: categoryId,
+      groupId: groupId,
+      evaluatorUsername: evaluatorUsername,
+    );
+  }
+
+  @override
+  Future<List<EvaluationEntity>> getPendingEvaluations({
+    required String username,
+    String? courseId,
+    String? categoryId,
+  }) {
+    return dataSource.getPendingEvaluations(
+      username: username,
+      courseId: courseId,
+      categoryId: categoryId,
+    );
+  }
+
+  @override
+  Future<List<EvaluationEntity>> getCompletedEvaluations({
+    required String username,
+    String? courseId,
+    String? categoryId,
+  }) {
+    return dataSource.getCompletedEvaluations(
+      username: username,
+      courseId: courseId,
+      categoryId: categoryId,
+    );
+  }
+
+  @override
+  Future<void> clearAllCourses() {
+    return dataSource.clearAllCourses();
   }
 }
 
