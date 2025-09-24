@@ -6,6 +6,9 @@ class CategoryEntity {
   final bool isRandomAssignment;
   final DateTime createdAt;
   final List<GroupEntity> groups;
+  final DateTime? evaluationStartDate;
+  final DateTime? evaluationEndDate;
+  final bool isEvaluationActive;
 
   const CategoryEntity({
     required this.id,
@@ -15,6 +18,9 @@ class CategoryEntity {
     required this.isRandomAssignment,
     required this.createdAt,
     required this.groups,
+    this.evaluationStartDate,
+    this.evaluationEndDate,
+    this.isEvaluationActive = false,
   });
 
   Map<String, dynamic> toJson() {
@@ -26,6 +32,9 @@ class CategoryEntity {
       'isRandomAssignment': isRandomAssignment,
       'createdAt': createdAt.toIso8601String(),
       'groups': groups.map((group) => group.toJson()).toList(),
+      'evaluationStartDate': evaluationStartDate?.toIso8601String(),
+      'evaluationEndDate': evaluationEndDate?.toIso8601String(),
+      'isEvaluationActive': isEvaluationActive,
     };
   }
 
@@ -40,6 +49,13 @@ class CategoryEntity {
       groups: (json['groups'] as List)
           .map((groupJson) => GroupEntity.fromJson(groupJson))
           .toList(),
+      evaluationStartDate: json['evaluationStartDate'] != null 
+          ? DateTime.parse(json['evaluationStartDate']) 
+          : null,
+      evaluationEndDate: json['evaluationEndDate'] != null 
+          ? DateTime.parse(json['evaluationEndDate']) 
+          : null,
+      isEvaluationActive: json['isEvaluationActive'] ?? false,
     );
   }
 
@@ -51,6 +67,9 @@ class CategoryEntity {
     bool? isRandomAssignment,
     DateTime? createdAt,
     List<GroupEntity>? groups,
+    DateTime? evaluationStartDate,
+    DateTime? evaluationEndDate,
+    bool? isEvaluationActive,
   }) {
     return CategoryEntity(
       id: id ?? this.id,
@@ -60,6 +79,9 @@ class CategoryEntity {
       isRandomAssignment: isRandomAssignment ?? this.isRandomAssignment,
       createdAt: createdAt ?? this.createdAt,
       groups: groups ?? this.groups,
+      evaluationStartDate: evaluationStartDate ?? this.evaluationStartDate,
+      evaluationEndDate: evaluationEndDate ?? this.evaluationEndDate,
+      isEvaluationActive: isEvaluationActive ?? this.isEvaluationActive,
     );
   }
 }

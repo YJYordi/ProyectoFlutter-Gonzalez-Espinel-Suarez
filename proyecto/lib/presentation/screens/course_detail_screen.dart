@@ -4,6 +4,7 @@ import 'package:proyecto/Domain/Entities/course.dart';
 import 'package:proyecto/Domain/Entities/course_enrollment.dart';
 import 'package:proyecto/presentation/providers/auth_provider.dart';
 import 'package:proyecto/presentation/providers/course_provider.dart';
+import 'package:proyecto/presentation/providers/role_provider.dart';
 import 'package:proyecto/presentation/screens/course_management_screen.dart';
 
 class CourseDetailScreen extends StatefulWidget {
@@ -238,56 +239,101 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                   const SizedBox(height: 16),
                   
                   // Botones de acción
-                  Row(
-                    children: [
-                      if (!_isEnrolled && _enrollments.length < widget.course.maxEnrollments)
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: _enrollInCourse,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                            ),
-                            child: const Text('Inscribirse'),
-                          ),
-                        )
-                      else if (_isEnrolled)
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () {
-                              // Navegar a la vista del curso
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => CourseManagementScreen(
-                                    course: widget.course,
-                                    currentUser: context.read<AuthProvider>().user!,
-                                  ),
+                  Consumer<RoleProvider>(
+                    builder: (context, roleProvider, child) {
+                      final isCreator = authProvider.user?.username == widget.course.creatorUsername;
+                      final isProfessor = roleProvider.isProfessor;
+                      
+                      return Row(
+                        children: [
+                          // Si es el creador del curso, mostrar botón "Gestionar"
+                          if (isCreator)
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => CourseManagementScreen(
+                                        course: widget.course,
+                                        currentUser: context.read<AuthProvider>().user!,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
                                 ),
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
+                                child: const Text('Gestionar'),
+                              ),
+                            )
+                          // Si es profesor pero no es el creador, mostrar mensaje
+                          else if (isProfessor)
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: null,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.grey[300],
+                                  foregroundColor: Colors.grey[600],
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                ),
+                                child: const Text('Cambiar a vista de estudiante'),
+                              ),
+                            )
+                          // Si es estudiante y no está inscrito
+                          else if (!_isEnrolled && _enrollments.length < widget.course.maxEnrollments)
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: _enrollInCourse,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                ),
+                                child: const Text('Inscribirse'),
+                              ),
+                            )
+                          // Si está inscrito
+                          else if (_isEnrolled)
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => CourseManagementScreen(
+                                        course: widget.course,
+                                        currentUser: context.read<AuthProvider>().user!,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                ),
+                                child: const Text('Empezar'),
+                              ),
+                            )
+                          // Si el curso está lleno
+                          else
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: null,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.grey,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                ),
+                                child: const Text('Curso lleno'),
+                              ),
                             ),
-                            child: const Text('Empezar'),
-                          ),
-                        )
-                      else
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: null,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.grey,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                            ),
-                            child: const Text('Curso lleno'),
-                          ),
-                        ),
-                    ],
+                        ],
+                      );
+                    },
                   ),
                   
                   // Botón de eliminar (solo para el creador)

@@ -22,10 +22,16 @@ import 'package:proyecto/Domain/usecases/delete_category_usecase.dart';
 import 'package:proyecto/Domain/usecases/edit_category_usecase.dart';
 import 'package:proyecto/Domain/usecases/enroll_category_usecase.dart';
 import 'package:proyecto/Domain/usecases/unenroll_category_usecase.dart';
+import 'package:proyecto/Domain/usecases/create_evaluation_usecase.dart';
+import 'package:proyecto/Domain/usecases/update_evaluation_usecase.dart';
+import 'package:proyecto/Domain/usecases/get_evaluations_by_group_usecase.dart';
+import 'package:proyecto/Domain/usecases/get_pending_evaluations_usecase.dart';
+import 'package:proyecto/Domain/usecases/start_evaluation_session_usecase.dart';
 import 'package:proyecto/presentation/providers/auth_provider.dart';
 import 'package:proyecto/presentation/providers/course_provider.dart';
 import 'package:proyecto/presentation/providers/category_provider.dart';
 import 'package:proyecto/presentation/providers/role_provider.dart';
+import 'package:proyecto/presentation/providers/evaluation_provider.dart';
 import 'package:proyecto/presentation/screens/category_courses_screen.dart';
 import 'package:proyecto/presentation/screens/sign_up.dart';
 import 'package:proyecto/presentation/screens/course_detail_screen.dart';
@@ -101,6 +107,15 @@ class _MyAppState extends State<MyApp> {
         ),
         ChangeNotifierProvider<RoleProvider>(
           create: (_) => RoleProvider()..initializeRole(),
+        ),
+        ChangeNotifierProvider<EvaluationProvider>(
+          create: (_) => EvaluationProvider(
+            createEvaluationUseCase: CreateEvaluationUseCase(_courseRepo),
+            updateEvaluationUseCase: UpdateEvaluationUseCase(_courseRepo),
+            getEvaluationsByGroupUseCase: GetEvaluationsByGroupUseCase(_courseRepo),
+            getPendingEvaluationsUseCase: GetPendingEvaluationsUseCase(_courseRepo),
+            startEvaluationSessionUseCase: StartEvaluationSessionUseCase(_courseRepo),
+          ),
         ),
       ],
       child: MaterialApp(
