@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:proyecto/presentation/providers/auth_provider.dart';
 import 'package:proyecto/presentation/screens/sign_up.dart';
 import 'package:proyecto/data/datasources/persistent_data_source.dart';
+import 'package:get/get.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -37,8 +38,11 @@ class _LoginPageState extends State<LoginPage> {
 
   void _login() async {
     final auth = context.read<AuthProvider>();
-    final success = await auth.login(_userController.text, _passController.text);
-    
+    final success = await auth.login(
+      _userController.text,
+      _passController.text,
+    );
+
     if (mounted) {
       if (success) {
         // Guardar configuración de recordar usuario
@@ -47,28 +51,23 @@ class _LoginPageState extends State<LoginPage> {
           username: _rememberUser ? _userController.text : null,
           password: _rememberUser ? _passController.text : null,
         );
-        
+
         if (mounted) {
           // Obtener el nombre real del usuario desde el AuthProvider
           final authProvider = context.read<AuthProvider>();
           final userName = authProvider.user?.name ?? _userController.text;
-          Navigator.pushReplacementNamed(
-            context,
-            '/home',
-            arguments: userName,
-          );
+
+          // 👇 reemplazo de Navigator con GetX
+          Get.offAllNamed('/home', arguments: userName);
         }
       } else {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
+        // 👇 reemplazo de showDialog con GetX
+        Get.dialog(
+          AlertDialog(
             title: const Text('Error'),
             content: const Text('Usuario o contraseña incorrectos'),
             actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
-              ),
+              TextButton(onPressed: () => Get.back(), child: const Text('OK')),
             ],
           ),
         );
@@ -90,12 +89,7 @@ class _LoginPageState extends State<LoginPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Logo o título principal
-            Icon(
-              Icons.school,
-              size: 80,
-              color: Colors.blue[600],
-            ),
+            Icon(Icons.school, size: 80, color: Colors.blue[600]),
             const SizedBox(height: 20),
             Text(
               'Sistema de Cursos',
@@ -105,8 +99,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
             const SizedBox(height: 40),
-            
-            // Campo de usuario
+
             TextField(
               controller: _userController,
               decoration: InputDecoration(
@@ -120,8 +113,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
             const SizedBox(height: 16),
-            
-            // Campo de contraseña
+
             TextField(
               controller: _passController,
               decoration: InputDecoration(
@@ -136,8 +128,7 @@ class _LoginPageState extends State<LoginPage> {
               obscureText: true,
             ),
             const SizedBox(height: 16),
-            
-            // Checkbox para recordar usuario
+
             Row(
               children: [
                 Checkbox(
@@ -152,8 +143,7 @@ class _LoginPageState extends State<LoginPage> {
               ],
             ),
             const SizedBox(height: 24),
-            
-            // Botón de login
+
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -173,20 +163,18 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
             const SizedBox(height: 16),
-            
-            // Botón de registro
+
             TextButton(
               onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const SignUpPage()),
-                );
+                // 👇 reemplazo de Navigator con GetX
+                Get.to(() => const SignUpPage());
               },
               child: const Text(
                 '¿No tienes cuenta? Regístrate aquí',
                 style: TextStyle(fontSize: 16),
               ),
             ),
-            
+
             const SizedBox(height: 20),
           ],
         ),
