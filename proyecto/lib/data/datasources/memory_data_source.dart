@@ -4,6 +4,10 @@ import 'package:proyecto/Domain/Entities/course_enrollment.dart';
 import 'package:proyecto/Domain/Entities/category.dart';
 
 class InMemoryDataSource {
+  // Hook opcional para sincronización remota
+  Future<void> onUserRegistered(UserEntity user) async {}
+  Future<void> onUserLogin(UserEntity user) async {}
+  Future<void> onUserLogout() async {}
   UserEntity? _currentUser;
   final Map<String, (String name, String password)> _users = {
     'user': ('Usuario Demo', 'pass'),
@@ -34,13 +38,16 @@ class InMemoryDataSource {
         role: UserRole.student, // Los usuarios pueden ser tanto estudiantes como profesores
         createdAt: DateTime.now(),
       );
-      return _currentUser;
+      final user = _currentUser!;
+      await onUserLogin(user);
+      return user;
     }
     return null;
   }
 
   Future<void> logout() async {
     _currentUser = null;
+    await onUserLogout();
   }
 
   Future<UserEntity> register({required String name, required String username, required String password}) async {
@@ -48,7 +55,7 @@ class InMemoryDataSource {
       throw ArgumentError('El usuario ya existe');
     }
     _users[username] = (name, password);
-    return UserEntity(
+    final user = UserEntity(
       username: username, 
       name: name,
       email: '$username@example.com',
@@ -56,6 +63,8 @@ class InMemoryDataSource {
       role: UserRole.student, // Los usuarios pueden ser tanto estudiantes como profesores
       createdAt: DateTime.now(),
     );
+    await onUserRegistered(user);
+    return user;
   }
 
   Future<List<CourseEntity>> getCourses() async {

@@ -4,8 +4,11 @@ import 'package:proyecto/Domain/Entities/course.dart';
 import 'package:proyecto/Domain/Entities/user.dart';
 import 'package:proyecto/Domain/Entities/course_enrollment.dart';
 import 'package:proyecto/data/datasources/memory_data_source.dart';
+import 'package:proyecto/data/datasources/supabase_remote_data_source.dart';
 
 class PersistentDataSource extends InMemoryDataSource {
+  final SupabaseRemoteDataSource? remote;
+  PersistentDataSource({this.remote});
   static const String _usersKey = 'stored_users';
   static const String _coursesKey = 'stored_courses';
   static const String _enrollmentsKey = 'stored_enrollments';
@@ -24,6 +27,16 @@ class PersistentDataSource extends InMemoryDataSource {
     // Si no hay datos, cargar datos precargados
     if (users.isEmpty) {
       await _loadPreloadedData();
+    }
+    // Intentar sincronizar usuarios desde Supabase si hay remoto
+    if (remote != null) {
+      try {
+        final remoteUsers = await remote!.fetchUsers();
+        for (final u in remoteUsers) {
+          users[u.username] = (u.name, u.password);
+        }
+        await _saveUsers();
+      } catch (_) {}
     }
   }
 
@@ -136,6 +149,11 @@ class PersistentDataSource extends InMemoryDataSource {
     final result = await super.login(username, password);
     if (result != null) {
       await _saveCurrentUser();
+      if (remote != null) {
+        try {
+          await remote!.insertActivity(type: 'login', payload: {'username': username}, username: username);
+        } catch (_) {}
+      }
     }
     return result;
   }
@@ -144,12 +162,23 @@ class PersistentDataSource extends InMemoryDataSource {
   Future<void> logout() async {
     await super.logout();
     await _saveCurrentUser();
+    if (remote != null) {
+      try {
+        await remote!.insertActivity(type: 'logout', payload: {}, username: null);
+      } catch (_) {}
+    }
   }
 
   @override
   Future<UserEntity> register({required String name, required String username, required String password}) async {
     final result = await super.register(name: name, username: username, password: password);
     await _saveUsers();
+    if (remote != null) {
+      try {
+        await remote!.upsertUser(result);
+        await remote!.insertActivity(type: 'register', payload: {'username': username}, username: username);
+      } catch (_) {}
+    }
     return result;
   }
 

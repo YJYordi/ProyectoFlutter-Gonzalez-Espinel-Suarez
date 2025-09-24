@@ -31,6 +31,8 @@ import 'package:proyecto/presentation/screens/sign_up.dart';
 import 'package:proyecto/presentation/screens/course_detail_screen.dart';
 import 'package:proyecto/presentation/screens/course_management_screen.dart';
 import 'package:proyecto/Domain/Entities/course.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:proyecto/data/datasources/supabase_remote_data_source.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,11 +50,18 @@ class _MyAppState extends State<MyApp> {
   late final PersistentDataSource _dataSource;
   late final AuthRepositoryImpl _authRepo;
   late final CourseRepositoryImpl _courseRepo;
+  late final SupabaseClient _supabase;
+  late final SupabaseRemoteDataSource _remoteDataSource;
 
   @override
   void initState() {
     super.initState();
-    _dataSource = PersistentDataSource();
+    _supabase = SupabaseClient(
+      'https://bqpjcdzoxnzarbjgskbe.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJxcGpjZHpveG56YXJiamdza2JlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg3MjQyODYsImV4cCI6MjA3NDMwMDI4Nn0.5jqgLBURXSNk1aikW4EKNbOSRi-TKYWcWTXmvYRY040',
+    );
+    _remoteDataSource = SupabaseRemoteDataSource(_supabase);
+    _dataSource = PersistentDataSource(remote: _remoteDataSource);
     _authRepo = AuthRepositoryImpl(_dataSource);
     _courseRepo = CourseRepositoryImpl(_dataSource);
     _initializeApp();
