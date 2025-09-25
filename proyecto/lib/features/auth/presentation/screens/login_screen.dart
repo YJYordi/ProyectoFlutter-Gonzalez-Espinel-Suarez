@@ -8,7 +8,7 @@ class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
@@ -35,7 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   labelText: 'Usuario',
                   border: OutlineInputBorder(),
                 ),
-                validator: (value) => value?.isEmpty == true ? 'Requerido' : null,
+                validator: (value) => (value?.isEmpty ?? true) ? 'Requerido' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -45,7 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   border: OutlineInputBorder(),
                 ),
                 obscureText: true,
-                validator: (value) => value?.isEmpty == true ? 'Requerido' : null,
+                validator: (value) => (value?.isEmpty ?? true) ? 'Requerido' : null,
               ),
               const SizedBox(height: 24),
               // Usar GetX para manejar el estado de auth
@@ -89,13 +89,15 @@ class _LoginScreenState extends State<LoginScreen> {
         );
         
         // Verificar si el login fue exitoso
-        if (authController.isLoggedIn) {
+        if (mounted && authController.isLoggedIn) {
           AppSnackBar.showSuccess(context, '¡Bienvenido!');
           Get.offAllNamed('/home');
         }
       } catch (e) {
-        final error = ErrorService.handleGenericError(e);
-        AppSnackBar.showError(context, error.message);
+        if (mounted) {
+          final error = ErrorService.handleGenericError(e);
+          AppSnackBar.showError(context, error.message);
+        }
       }
     }
   }

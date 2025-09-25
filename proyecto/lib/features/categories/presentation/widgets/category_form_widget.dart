@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:proyecto/Domain/Entities/category.dart';
+import 'package:proyecto/features/categories/domain/entities/category.dart';
 
 class CategoryFormWidget extends StatefulWidget {
   final CategoryEntity? editingCategory;

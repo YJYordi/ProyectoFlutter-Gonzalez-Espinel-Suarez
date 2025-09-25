@@ -8,7 +8,7 @@ class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  _RegisterScreenState createState() => _RegisterScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
@@ -37,7 +37,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   labelText: 'Nombre completo',
                   border: OutlineInputBorder(),
                 ),
-                validator: (value) => value?.isEmpty == true ? 'Requerido' : null,
+                validator: (value) => (value?.isEmpty ?? true) ? 'Requerido' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -46,7 +46,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   labelText: 'Usuario',
                   border: OutlineInputBorder(),
                 ),
-                validator: (value) => value?.isEmpty == true ? 'Requerido' : null,
+                validator: (value) => (value?.isEmpty ?? true) ? 'Requerido' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -56,7 +56,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   border: OutlineInputBorder(),
                 ),
                 obscureText: true,
-                validator: (value) => value?.isEmpty == true ? 'Requerido' : null,
+                validator: (value) => (value?.isEmpty ?? true) ? 'Requerido' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -67,7 +67,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 obscureText: true,
                 validator: (value) {
-                  if (value?.isEmpty == true) return 'Requerido';
+                  if (value?.isEmpty ?? true) return 'Requerido';
                   if (value != _passwordController.text) return 'Las contraseñas no coinciden';
                   return null;
                 },
@@ -115,13 +115,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
         
         // Si el registro fue exitoso, navegar al login
-        if (authController.isLoggedIn) {
+        if (mounted && authController.isLoggedIn) {
           AppSnackBar.showSuccess(context, '¡Registro exitoso! Inicia sesión.');
           Get.offAllNamed('/login');
         }
       } catch (e) {
-        final error = ErrorService.handleGenericError(e);
-        AppSnackBar.showError(context, error.message);
+        if (mounted) {
+          final error = ErrorService.handleGenericError(e);
+          AppSnackBar.showError(context, error.message);
+        }
       }
     }
   }

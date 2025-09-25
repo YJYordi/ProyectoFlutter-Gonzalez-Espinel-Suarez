@@ -1,5 +1,5 @@
-import 'package:proyecto/Domain/Entities/category.dart';
-import 'package:proyecto/Domain/repositories/course_repository.dart';
+import 'package:proyecto/features/categories/domain/entities/category.dart';
+import 'package:proyecto/features/courses/domain/repositories/course_repository.dart';
 
 class UnenrollCategoryUseCase {
   final CourseRepository repository;

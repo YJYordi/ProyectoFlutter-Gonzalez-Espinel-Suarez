@@ -1,7 +1,7 @@
-import 'package:proyecto/Domain/Entities/category.dart';
-import 'package:proyecto/Domain/Entities/course.dart';
-import 'package:proyecto/Domain/Entities/course_enrollment.dart';
-import 'package:proyecto/Domain/repositories/course_repository.dart';
+import 'package:proyecto/features/categories/domain/entities/category.dart';
+import 'package:proyecto/features/courses/domain/entities/course.dart';
+import 'package:proyecto/features/courses/domain/entities/course_enrollment.dart';
+import 'package:proyecto/features/courses/domain/repositories/course_repository.dart';
 import 'dart:math';
 
 class EditCategoryUseCase {

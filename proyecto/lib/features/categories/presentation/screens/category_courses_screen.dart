@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:proyecto/presentation/providers/course_provider.dart';
-import 'package:proyecto/presentation/screens/course_detail_screen.dart';
+import 'package:proyecto/features/courses/presentation/providers/course_provider.dart';
+import 'package:proyecto/features/courses/domain/entities/course.dart';
 
 class CategoryCoursesScreen extends StatefulWidget {
   final String category;
@@ -167,10 +167,11 @@ class _CategoryCoursesScreenState extends State<CategoryCoursesScreen> {
                                       width: double.infinity,
                                       child: ElevatedButton(
                                         onPressed: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => CourseDetailScreen(course: course),
+                                          // TODO: Implementar pantalla de detalles del curso
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text('Detalles de: ${course.title}'),
+                                              backgroundColor: Colors.blue,
                                             ),
                                           );
                                         },

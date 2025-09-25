@@ -1,4 +1,4 @@
-import 'package:proyecto/Domain/repositories/course_repository.dart';
+import 'package:proyecto/features/courses/domain/repositories/course_repository.dart';
 
 class EnrollCategoryUseCase {
   final CourseRepository repository;
