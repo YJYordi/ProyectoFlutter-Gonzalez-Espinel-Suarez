@@ -105,16 +105,10 @@ class _MyAppState extends State<MyApp> {
             getCourseEnrollmentsUseCase: GetCourseEnrollmentsUseCase(
               _courseRepo,
             ),
-            getCourseEnrollmentsUseCase: GetCourseEnrollmentsUseCase(
-              _courseRepo,
-            ),
             deleteCourseUseCase: DeleteCourseUseCase(_courseRepo),
             unenrollFromCourseUseCase: UnenrollFromCourseUseCase(_courseRepo),
             getCoursesByCreatorUseCase: GetCoursesByCreatorUseCase(_courseRepo),
             getCoursesByStudentUseCase: GetCoursesByStudentUseCase(_courseRepo),
-            getCoursesByCategoryUseCase: GetCoursesByCategoryUseCase(
-              _courseRepo,
-            ),
             getCoursesByCategoryUseCase: GetCoursesByCategoryUseCase(
               _courseRepo,
             ),
