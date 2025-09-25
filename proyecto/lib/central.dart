@@ -1,25 +1,22 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:proyecto/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:proyecto/features/courses/presentation/screens/courses_screen.dart';
+import 'package:proyecto/features/auth/presentation/screens/login_screen.dart';
 
-import '../../domain/usecases/login_usecase.dart';
-import '../../domain/usecases/register_usecase.dart';
+class Central extends StatelessWidget {
+  const Central({super.key});
 
-class AuthController extends GetxController {
-  final LoginUseCase loginUseCase;
-  final RegisterUseCase registerUseCase;
-
-  AuthController({required this.loginUseCase, required this.registerUseCase});
-
-  // Variable observable
-  final RxBool logged = false.obs;
-
-  bool get isLogged => logged.value;
-
-  void login(String email, String password) async {
-    final result = await loginUseCase.call(email, password);
-    if (result) logged.value = true;
-  }
-
-  void logout() {
-    logged.value = false;
+  @override
+  Widget build(BuildContext context) {
+    return GetBuilder<AuthController>(
+      builder: (authController) {
+        if (authController.isLoggedIn) {
+          return const CoursesScreen();
+        } else {
+          return const LoginScreen();
+        }
+      },
+    );
   }
 }

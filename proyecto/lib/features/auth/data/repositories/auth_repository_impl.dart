@@ -1,26 +1,30 @@
 import 'package:proyecto/features/auth/domain/entities/user.dart';
 import 'package:proyecto/features/auth/domain/repositories/auth_repository.dart';
-import 'package:proyecto/core/data/datasources/persistent_data_source.dart';
+import 'package:proyecto/features/auth/data/datasources/auth_remote_data_source.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
-  final PersistentDataSource dataSource;
+  final AuthRemoteDataSource remoteDataSource;
 
-  AuthRepositoryImpl(this.dataSource);
+  AuthRepositoryImpl(this.remoteDataSource);
 
   @override
-  UserEntity? get currentUser => dataSource.currentUser;
+  UserEntity? get currentUser => null; // Se manejará desde la API
 
   @override
   Future<UserEntity?> login({
     required String username,
     required String password,
-  }) {
-    return dataSource.login(username, password);
+  }) async {
+    try {
+      return await remoteDataSource.login(username, password);
+    } catch (e) {
+      return null;
+    }
   }
 
   @override
-  Future<void> logout() {
-    return dataSource.logout();
+  Future<void> logout() async {
+    await remoteDataSource.logout();
   }
 
   @override
@@ -28,11 +32,7 @@ class AuthRepositoryImpl implements AuthRepository {
     required String name,
     required String username,
     required String password,
-  }) {
-    return dataSource.register(
-      name: name,
-      username: username,
-      password: password,
-    );
+  }) async {
+    return await remoteDataSource.register(name, username, password);
   }
 }

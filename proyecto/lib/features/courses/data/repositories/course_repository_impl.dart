@@ -1,11 +1,22 @@
 import 'package:proyecto/features/courses/domain/entities/course.dart';
 import 'package:proyecto/features/courses/domain/entities/course_enrollment.dart';
 import 'package:proyecto/features/courses/domain/repositories/course_repository.dart';
-import 'package:proyecto/core/data/datasources/persistent_data_source.dart';
+import 'package:proyecto/features/courses/data/datasources/courses_remote_data_source.dart';
 
 class CourseRepositoryImpl implements CourseRepository {
-  final PersistentDataSource dataSource;
-  CourseRepositoryImpl(this.dataSource);
+  final CoursesRemoteDataSource remoteDataSource;
+
+  CourseRepositoryImpl(this.remoteDataSource);
+
+  @override
+  Future<List<CourseEntity>> getAvailableCourses() async {
+    return await remoteDataSource.getCourses();
+  }
+
+  @override
+  Future<CourseEntity?> getCourseById(String courseId) async {
+    return await remoteDataSource.getCourseById(courseId);
+  }
 
   @override
   Future<void> createCourse({
@@ -17,32 +28,30 @@ class CourseRepositoryImpl implements CourseRepository {
     required int maxEnrollments,
     required bool isRandomAssignment,
     int? groupSize,
-  }) {
-    return dataSource.createCourse(
+  }) async {
+    final course = CourseEntity(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
       title: title,
       description: description,
       creatorUsername: creatorUsername,
       creatorName: creatorName,
       categories: categories,
       maxEnrollments: maxEnrollments,
+      currentEnrollments: 0,
+      createdAt: DateTime.now(),
+      schedule: 'Por definir',
+      location: 'Por definir',
+      price: 0.0,
       isRandomAssignment: isRandomAssignment,
       groupSize: groupSize,
     );
+
+    await remoteDataSource.createCourse(course);
   }
 
   @override
-  Future<List<CourseEntity>> getAvailableCourses() {
-    return dataSource.getCourses();
-  }
-
-  @override
-  Future<CourseEntity?> getCourseById(String courseId) {
-    return dataSource.getCourseById(courseId);
-  }
-
-  @override
-  Future<List<CourseEnrollment>> getCourseEnrollments(String courseId) {
-    return dataSource.getCourseEnrollments(courseId);
+  Future<List<CourseEnrollment>> getCourseEnrollments(String courseId) async {
+    return await remoteDataSource.getCourseEnrollments(courseId);
   }
 
   @override
@@ -50,41 +59,37 @@ class CourseRepositoryImpl implements CourseRepository {
     required String courseId,
     required String username,
     required String userName,
-  }) {
-    return dataSource.enrollInCourse(
-      courseId: courseId,
-      username: username,
-      userName: userName,
-    );
+  }) async {
+    await remoteDataSource.enrollInCourse(courseId, username, userName);
   }
 
   @override
-  Future<bool> isUserEnrolledInCourse(String courseId, String username) {
-    return dataSource.isUserEnrolledInCourse(courseId, username);
+  Future<void> unenrollFromCourse(String courseId, String username) async {
+    await remoteDataSource.unenrollFromCourse(courseId, username);
   }
 
   @override
-  Future<List<CourseEntity>> getCoursesByCategory(String category) {
-    return dataSource.getCoursesByCategory(category);
+  Future<bool> isUserEnrolledInCourse(String courseId, String username) async {
+    return await remoteDataSource.isUserEnrolledInCourse(courseId, username);
   }
 
   @override
-  Future<void> deleteCourse(String courseId, String creatorUsername) {
-    return dataSource.deleteCourse(courseId, creatorUsername);
+  Future<List<CourseEntity>> getCoursesByCategory(String category) async {
+    return await remoteDataSource.getCoursesByCategory(category);
   }
 
   @override
-  Future<void> unenrollFromCourse(String courseId, String username) {
-    return dataSource.unenrollFromCourse(courseId, username);
+  Future<void> deleteCourse(String courseId, String creatorUsername) async {
+    await remoteDataSource.deleteCourse(courseId, creatorUsername);
   }
 
   @override
-  Future<List<CourseEntity>> getCoursesByCreator(String creatorUsername) {
-    return dataSource.getCoursesByCreator(creatorUsername);
+  Future<List<CourseEntity>> getCoursesByCreator(String creatorUsername) async {
+    return await remoteDataSource.getCoursesByCreator(creatorUsername);
   }
 
   @override
-  Future<List<CourseEntity>> getCoursesByStudent(String username) {
-    return dataSource.getCoursesByStudent(username);
+  Future<List<CourseEntity>> getCoursesByStudent(String username) async {
+    return await remoteDataSource.getCoursesByStudent(username);
   }
 }
