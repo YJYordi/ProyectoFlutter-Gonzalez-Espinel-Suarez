@@ -1,6 +1,5 @@
 import 'package:proyecto/Domain/Entities/category.dart';
 import 'package:proyecto/Domain/Entities/course.dart';
-import 'package:proyecto/Domain/Entities/course_enrollment.dart';
 import 'package:proyecto/Domain/repositories/course_repository.dart';
 import 'dart:math';
 
