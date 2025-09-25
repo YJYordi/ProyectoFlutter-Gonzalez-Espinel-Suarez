@@ -86,12 +86,16 @@ class _MyAppState extends State<MyApp> {
             getCoursesUseCase: GetCoursesUseCase(_courseRepo),
             createCourseUseCase: CreateCourseUseCase(_courseRepo),
             enrollInCourseUseCase: EnrollInCourseUseCase(_courseRepo),
-            getCourseEnrollmentsUseCase: GetCourseEnrollmentsUseCase(_courseRepo),
+            getCourseEnrollmentsUseCase: GetCourseEnrollmentsUseCase(
+              _courseRepo,
+            ),
             deleteCourseUseCase: DeleteCourseUseCase(_courseRepo),
             unenrollFromCourseUseCase: UnenrollFromCourseUseCase(_courseRepo),
             getCoursesByCreatorUseCase: GetCoursesByCreatorUseCase(_courseRepo),
             getCoursesByStudentUseCase: GetCoursesByStudentUseCase(_courseRepo),
-            getCoursesByCategoryUseCase: GetCoursesByCategoryUseCase(_courseRepo),
+            getCoursesByCategoryUseCase: GetCoursesByCategoryUseCase(
+              _courseRepo,
+            ),
             courseRepository: _courseRepo,
           )..loadCourses(),
         ),
@@ -112,9 +116,15 @@ class _MyAppState extends State<MyApp> {
           create: (_) => EvaluationProvider(
             createEvaluationUseCase: CreateEvaluationUseCase(_courseRepo),
             updateEvaluationUseCase: UpdateEvaluationUseCase(_courseRepo),
-            getEvaluationsByGroupUseCase: GetEvaluationsByGroupUseCase(_courseRepo),
-            getPendingEvaluationsUseCase: GetPendingEvaluationsUseCase(_courseRepo),
-            startEvaluationSessionUseCase: StartEvaluationSessionUseCase(_courseRepo),
+            getEvaluationsByGroupUseCase: GetEvaluationsByGroupUseCase(
+              _courseRepo,
+            ),
+            getPendingEvaluationsUseCase: GetPendingEvaluationsUseCase(
+              _courseRepo,
+            ),
+            startEvaluationSessionUseCase: StartEvaluationSessionUseCase(
+              _courseRepo,
+            ),
           ),
         ),
       ],
@@ -132,7 +142,8 @@ class _MyAppState extends State<MyApp> {
           },
           '/signup': (context) => const SignUpPage(),
           '/course_detail': (context) {
-            final args = ModalRoute.of(context)?.settings.arguments as CourseEntity;
+            final args =
+                ModalRoute.of(context)?.settings.arguments as CourseEntity;
             return CourseDetailScreen(course: args);
           },
           '/category_courses': (context) {
@@ -140,13 +151,20 @@ class _MyAppState extends State<MyApp> {
             return CategoryCoursesScreen(category: args);
           },
           '/course_management': (context) {
-            final course = ModalRoute.of(context)?.settings.arguments as CourseEntity;
-            final authProvider = Provider.of<AuthProvider>(context, listen: false);
+            final course =
+                ModalRoute.of(context)?.settings.arguments as CourseEntity;
+            final authProvider = Provider.of<AuthProvider>(
+              context,
+              listen: false,
+            );
             final currentUser = authProvider.user;
             if (currentUser == null) {
               return const LoginPage();
             }
-            return CourseManagementScreen(course: course, currentUser: currentUser);
+            return CourseManagementScreen(
+              course: course,
+              currentUser: currentUser,
+            );
           },
         },
       ),
