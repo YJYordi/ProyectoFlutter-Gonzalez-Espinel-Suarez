@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:proyecto/Domain/Entities/course.dart';
 import 'package:proyecto/presentation/screens/course_creation.dart';
 import 'package:proyecto/presentation/screens/course_detail_screen.dart';
+import 'package:proyecto/presentation/screens/explore_page.dart';
+import 'package:proyecto/presentation/screens/pending_evaluations_screen.dart';
+import 'package:proyecto/presentation/screens/professor_evaluations_screen.dart';
 import 'package:proyecto/presentation/providers/course_provider.dart';
 import 'package:proyecto/presentation/providers/auth_provider.dart';
+import 'package:proyecto/presentation/providers/role_provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -38,6 +43,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
+    final roleProvider = context.watch<RoleProvider>();
     final String displayName = authProvider.user?.name ?? 'Usuario';
 
     final courseProvider = context.watch<CourseProvider>();
@@ -54,27 +60,35 @@ class _HomePageState extends State<HomePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Saludo
-              Row(
-                children: [
-                  CircleAvatar(child: Text(displayName[0].toUpperCase())),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              Consumer<RoleProvider>(
+                builder: (context, roleProvider, child) {
+                  return Row(
                     children: [
-                      Text(
-                        'Hola, $displayName',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Text(
-                        'Estudiante & Profesor',
-                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                      CircleAvatar(child: Text(displayName[0].toUpperCase())),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Hola, $displayName',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            roleProvider.isProfessor ? 'Modo Profesor' : 'Modo Estudiante',
+                            style: TextStyle(
+                              fontSize: 14, 
+                              color: roleProvider.isProfessor ? Colors.blue[600] : Colors.green[600],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
-                  ),
-                ],
+                  );
+                },
               ),
               const SizedBox(height: 24),
               // Abanicos desplegables
@@ -175,20 +189,56 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
               const SizedBox(height: 24),
-          // Cursos disponibles
-          const Text(
-            'Cursos disponibles',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          // Cursos disponibles - Cambia según el rol
+          Consumer<RoleProvider>(
+            builder: (context, roleProvider, child) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    roleProvider.isProfessor ? 'Todos los cursos' : 'Cursos disponibles',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+              );
+            },
           ),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 200,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: cursos.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 16),
-              itemBuilder: (context, index) {
-                final curso = cursos[index];
+          Consumer<RoleProvider>(
+            builder: (context, roleProvider, child) {
+              // Filtrar cursos según el rol
+              List<CourseEntity> filteredCourses;
+              if (roleProvider.isProfessor) {
+                // Profesor ve todos los cursos
+                filteredCourses = cursos;
+              } else {
+                // Estudiante ve solo cursos no inscritos
+                final enrolledCourseIds = enrolledCourses.map((c) => c.id).toSet();
+                filteredCourses = cursos.where((course) => !enrolledCourseIds.contains(course.id)).toList();
+              }
+              
+              return SizedBox(
+                height: 200,
+                child: filteredCourses.isEmpty
+                    ? const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.school, size: 48, color: Colors.grey),
+                            SizedBox(height: 16),
+                            Text(
+                              'No hay cursos disponibles',
+                              style: TextStyle(fontSize: 16, color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: filteredCourses.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 16),
+                        itemBuilder: (context, index) {
+                          final curso = filteredCourses[index];
                     return Card(
                       elevation: 4,
                       shape: RoundedRectangleBorder(
@@ -226,7 +276,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                             const SizedBox(height: 12),
                             
-                            // Categorías
+                            // Tags
                             Expanded(
                               child: Wrap(
                                 spacing: 4,
@@ -276,7 +326,7 @@ class _HomePageState extends State<HomePage> {
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
-                                child: const Text('Ver más'),
+                                child: Text(roleProvider.isProfessor ? 'Gestionar' : 'Ver más'),
                               ),
                             ),
                           ],
@@ -285,10 +335,12 @@ class _HomePageState extends State<HomePage> {
                     );
                   },
                 ),
-              ),
-              const SizedBox(height: 32),
+              );
+            },
+          ),
+          const SizedBox(height: 32),
               const Text(
-                'Categorías',
+                'Tags',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 12),
@@ -368,7 +420,7 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       // EXPLORAR
-      _buildExplorePage(),
+      const ExplorePage(),
       // PENDIENTES
       const Center(child: Text('Pendientes', style: TextStyle(fontSize: 24))),
       // PERFIL
@@ -376,13 +428,90 @@ class _HomePageState extends State<HomePage> {
     ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Inicio')),
+      appBar: AppBar(
+        title: const Text('Inicio'),
+        actions: [
+          // Indicador de rol con opción de cambio
+          PopupMenuButton<String>(
+            icon: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  roleProvider.roleIcon,
+                  style: const TextStyle(fontSize: 20),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  roleProvider.roleDisplayName,
+                  style: const TextStyle(fontSize: 16),
+                ),
+                const Icon(Icons.arrow_drop_down),
+              ],
+            ),
+            onSelected: (String value) {
+              if (value == 'switch') {
+                roleProvider.switchRole();
+              }
+            },
+            itemBuilder: (BuildContext context) => [
+              PopupMenuItem<String>(
+                value: 'switch',
+                child: Row(
+                  children: [
+                    Text(roleProvider.isProfessor ? '👨‍🎓' : '👨‍🏫'),
+                    const SizedBox(width: 8),
+                    Text(roleProvider.isProfessor ? 'Ver como Estudiante' : 'Ver como Profesor'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
       body: pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
         onTap: (index) {
-          if (index == 3) {
+          if (index == 2) {
+            // Navegar a la pantalla de evaluaciones según el rol
+            if (roleProvider.isProfessor) {
+              // Para profesores: mostrar todas las evaluaciones de sus cursos
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProfessorEvaluationsScreen(
+                    course: createdCourses.isNotEmpty ? createdCourses.first : CourseEntity(
+                      id: 'mock',
+                      title: 'Mis Cursos',
+                      description: 'Evaluaciones de todos los cursos',
+                      creatorUsername: authProvider.user?.username ?? '',
+                      creatorName: authProvider.user?.name ?? '',
+                      categories: [],
+                      maxEnrollments: 0,
+                      currentEnrollments: 0,
+                      createdAt: DateTime.now(),
+                      schedule: '',
+                      location: '',
+                      price: 0.0,
+                      isRandomAssignment: false,
+                    ),
+                    professorUsername: authProvider.user?.username ?? '',
+                  ),
+                ),
+              );
+            } else {
+              // Para estudiantes: mostrar evaluaciones pendientes
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PendingEvaluationsScreen(
+                    username: authProvider.user?.username ?? '',
+                  ),
+                ),
+              );
+            }
+          } else if (index == 3) {
             // Navegar a la pantalla de perfil
             Navigator.pushNamed(context, '/perfil', arguments: displayName);
           } else {
@@ -393,14 +522,14 @@ class _HomePageState extends State<HomePage> {
         },
         selectedItemColor: Colors.black,
         unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Explorar'),
+        items: [
+          const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
+          const BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Explorar'),
           BottomNavigationBarItem(
-            icon: Icon(Icons.list_alt),
-            label: 'Pendientes',
+            icon: const Icon(Icons.assessment),
+            label: roleProvider.isProfessor ? 'Evaluaciones' : 'Pendientes',
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
+          const BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
         ],
       ),
     );
@@ -442,164 +571,23 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-        trailing: ElevatedButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => CourseDetailScreen(course: course),
-              ),
-            ).then((_) => _loadUserCourses());
+        trailing: Consumer<RoleProvider>(
+          builder: (context, roleProvider, child) {
+            return ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CourseDetailScreen(course: course),
+                  ),
+                ).then((_) => _loadUserCourses());
+              },
+              child: Text(roleProvider.isProfessor ? 'Gestionar' : 'Ver más'),
+            );
           },
-          child: const Text('Ver más'),
         ),
       ),
     );
   }
 
-  Widget _buildExplorePage() {
-    final courseProvider = context.watch<CourseProvider>();
-    final searchResults = courseProvider.searchResults;
-    final searchQuery = courseProvider.searchQuery;
-
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Explorar Cursos',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            decoration: InputDecoration(
-              hintText: 'Buscar cursos...',
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: searchQuery.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () => courseProvider.clearSearch(),
-                    )
-                  : null,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onChanged: (value) => courseProvider.searchCourses(value),
-          ),
-          const SizedBox(height: 16),
-          if (searchQuery.isNotEmpty) ...[
-            Text(
-              'Resultados para "$searchQuery" (${searchResults.length})',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 12),
-          ],
-          Expanded(
-            child: searchQuery.isEmpty
-                ? const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.search,
-                          size: 64,
-                          color: Colors.grey,
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          'Escribe algo para buscar cursos',
-                          style: TextStyle(fontSize: 18, color: Colors.grey),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Busca por título, descripción o creador',
-                          style: TextStyle(fontSize: 14, color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  )
-                : searchResults.isEmpty
-                    ? const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.search_off,
-                              size: 64,
-                              color: Colors.grey,
-                            ),
-                            SizedBox(height: 16),
-                            Text(
-                              'No se encontraron cursos',
-                              style: TextStyle(fontSize: 18, color: Colors.grey),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              'Intenta con otros términos de búsqueda',
-                              style: TextStyle(fontSize: 14, color: Colors.grey),
-                            ),
-                          ],
-                        ),
-                      )
-                    : ListView.builder(
-                        itemCount: searchResults.length,
-                        itemBuilder: (context, index) {
-                          final course = searchResults[index];
-                          return Card(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            child: ListTile(
-                              title: Text(
-                                course.title,
-                                style: const TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Por: ${course.creatorName}'),
-                                  Text(
-                                    course.description,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Wrap(
-                                    spacing: 4,
-                                    children: course.categories.take(2).map<Widget>((category) {
-                                      return Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: Colors.blue[100],
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: Text(
-                                          category,
-                                          style: const TextStyle(fontSize: 10, color: Colors.blue),
-                                        ),
-                                      );
-                                    }).toList(),
-                                  ),
-                                ],
-                              ),
-                              trailing: ElevatedButton(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => CourseDetailScreen(course: course),
-                                    ),
-                                  ).then((_) => _loadUserCourses());
-                                },
-                                child: const Text('Ver más'),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-          ),
-        ],
-      ),
-    );
-  }
 }

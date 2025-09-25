@@ -1,15 +1,22 @@
 import 'package:proyecto/Domain/Entities/course.dart';
 import 'package:proyecto/Domain/Entities/user.dart';
 import 'package:proyecto/Domain/Entities/course_enrollment.dart';
+import 'package:proyecto/Domain/Entities/category.dart';
+import 'package:proyecto/Domain/Entities/evaluation.dart';
 
 class InMemoryDataSource {
   UserEntity? _currentUser;
   final Map<String, (String name, String password)> _users = {
     'user': ('Usuario Demo', 'pass'),
+    'a@a.com': ('Profesor A', '123456'),
+    'b@a.com': ('Estudiante B', '123456'),
+    'c@a.com': ('Estudiante C', '123456'),
   };
 
   final List<CourseEntity> _courses = <CourseEntity>[];
   final List<CourseEnrollment> _enrollments = <CourseEnrollment>[];
+  final List<CategoryEntity> _categories = <CategoryEntity>[];
+  final List<EvaluationEntity> _evaluations = <EvaluationEntity>[];
 
   UserEntity? get currentUser => _currentUser;
   set currentUser(UserEntity? value) => _currentUser = value;
@@ -17,6 +24,8 @@ class InMemoryDataSource {
   // Getters para acceso desde clases hijas
   List<CourseEntity> get courses => _courses;
   List<CourseEnrollment> get enrollments => _enrollments;
+  List<CategoryEntity> get categories => _categories;
+  List<EvaluationEntity> get evaluations => _evaluations;
   Map<String, (String name, String password)> get users => _users;
 
   Future<UserEntity?> login(String username, String password) async {
@@ -152,6 +161,132 @@ class InMemoryDataSource {
         .toSet();
     
     return _courses.where((course) => enrolledCourseIds.contains(course.id)).toList();
+  }
+
+  // Category management methods
+  Future<List<CategoryEntity>> getCategoriesByCourse(String courseId) async {
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    return _categories.where((category) => category.courseId == courseId).toList();
+  }
+
+  Future<CategoryEntity?> getCategoryById(String categoryId) async {
+    try {
+      return _categories.firstWhere((category) => category.id == categoryId);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<void> createCategory(CategoryEntity category) async {
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    _categories.add(category);
+  }
+
+  Future<void> updateCategory(CategoryEntity category) async {
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    final index = _categories.indexWhere((c) => c.id == category.id);
+    if (index != -1) {
+      _categories[index] = category;
+    }
+  }
+
+  Future<void> deleteCategory(String categoryId) async {
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    _categories.removeWhere((category) => category.id == categoryId);
+  }
+
+  // Método para limpiar todos los cursos (útil para testing)
+  Future<void> clearAllCourses() async {
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    _courses.clear();
+    _enrollments.clear();
+    _categories.clear();
+    _evaluations.clear();
+  }
+
+  // Evaluation management methods
+  Future<void> createEvaluation(EvaluationEntity evaluation) async {
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    _evaluations.add(evaluation);
+  }
+
+  Future<void> updateEvaluation(EvaluationEntity evaluation) async {
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    final index = _evaluations.indexWhere((e) => e.id == evaluation.id);
+    if (index != -1) {
+      _evaluations[index] = evaluation;
+    }
+  }
+
+  Future<EvaluationEntity?> getEvaluationById(String evaluationId) async {
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    try {
+      return _evaluations.firstWhere((e) => e.id == evaluationId);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<EvaluationEntity?> getEvaluation({
+    required String courseId,
+    required String categoryId,
+    required String groupId,
+    required String evaluatorUsername,
+    required String evaluatedUsername,
+  }) async {
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    try {
+      return _evaluations.firstWhere((e) =>
+          e.courseId == courseId &&
+          e.categoryId == categoryId &&
+          e.groupId == groupId &&
+          e.evaluatorUsername == evaluatorUsername &&
+          e.evaluatedUsername == evaluatedUsername);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<List<EvaluationEntity>> getEvaluationsByGroup({
+    required String courseId,
+    required String categoryId,
+    required String groupId,
+    required String evaluatorUsername,
+  }) async {
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    return _evaluations.where((e) =>
+        e.courseId == courseId &&
+        e.categoryId == categoryId &&
+        e.groupId == groupId &&
+        e.evaluatorUsername == evaluatorUsername).toList();
+  }
+
+  Future<List<EvaluationEntity>> getPendingEvaluations({
+    required String username,
+    String? courseId,
+    String? categoryId,
+  }) async {
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    return _evaluations.where((e) {
+      if (e.evaluatorUsername != username) return false;
+      if (courseId != null && e.courseId != courseId) return false;
+      if (categoryId != null && e.categoryId != categoryId) return false;
+      return e.isPending;
+    }).toList();
+  }
+
+  Future<List<EvaluationEntity>> getCompletedEvaluations({
+    required String username,
+    String? courseId,
+    String? categoryId,
+  }) async {
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    return _evaluations.where((e) {
+      if (e.evaluatorUsername != username) return false;
+      if (courseId != null && e.courseId != courseId) return false;
+      if (categoryId != null && e.categoryId != categoryId) return false;
+      return e.isCompleted;
+    }).toList();
   }
 }
 

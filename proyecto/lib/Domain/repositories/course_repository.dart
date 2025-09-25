@@ -1,5 +1,7 @@
 import 'package:proyecto/Domain/Entities/course.dart';
 import 'package:proyecto/Domain/Entities/course_enrollment.dart';
+import 'package:proyecto/Domain/Entities/category.dart';
+import 'package:proyecto/Domain/Entities/evaluation.dart';
 
 abstract class CourseRepository {
   Future<List<CourseEntity>> getAvailableCourses();
@@ -26,6 +28,44 @@ abstract class CourseRepository {
   Future<void> deleteCourse(String courseId, String creatorUsername);
   Future<List<CourseEntity>> getCoursesByCreator(String creatorUsername);
   Future<List<CourseEntity>> getCoursesByStudent(String username);
+  
+  // Category management methods
+  Future<List<CategoryEntity>> getCategoriesByCourse(String courseId);
+  Future<CategoryEntity?> getCategoryById(String categoryId);
+  Future<void> createCategory(CategoryEntity category);
+  Future<void> updateCategory(CategoryEntity category);
+  Future<void> deleteCategory(String categoryId);
+  
+  // Evaluation management methods
+  Future<void> createEvaluation(EvaluationEntity evaluation);
+  Future<void> updateEvaluation(EvaluationEntity evaluation);
+  Future<EvaluationEntity?> getEvaluationById(String evaluationId);
+  Future<EvaluationEntity?> getEvaluation({
+    required String courseId,
+    required String categoryId,
+    required String groupId,
+    required String evaluatorUsername,
+    required String evaluatedUsername,
+  });
+  Future<List<EvaluationEntity>> getEvaluationsByGroup({
+    required String courseId,
+    required String categoryId,
+    required String groupId,
+    required String evaluatorUsername,
+  });
+  Future<List<EvaluationEntity>> getPendingEvaluations({
+    required String username,
+    String? courseId,
+    String? categoryId,
+  });
+  Future<List<EvaluationEntity>> getCompletedEvaluations({
+    required String username,
+    String? courseId,
+    String? categoryId,
+  });
+  
+  // Método para limpiar todos los cursos (útil para testing)
+  Future<void> clearAllCourses();
 }
 
 
