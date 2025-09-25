@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
-import 'package:proyecto/Domain/Entities/user.dart';
-import 'package:proyecto/Domain/usecases/login_usecase.dart';
-import 'package:proyecto/Domain/usecases/register_usecase.dart';
+import 'package:proyecto/features/auth/domain/entities/user.dart';
+import 'package:proyecto/features/auth/domain/usecases/login_usecase.dart';
+import 'package:proyecto/features/auth/domain/usecases/register_usecase.dart';
 
 class AuthController extends GetxController {
   final LoginUseCase loginUseCase;
@@ -20,7 +20,6 @@ class AuthController extends GetxController {
       final result = await loginUseCase(username, password);
       if (result != null) {
         user.value = result;
-        // Central detectará el cambio y mostrará HomePage
       } else {
         Get.snackbar("Error", "Usuario o contraseña incorrectos");
       }
@@ -49,6 +48,5 @@ class AuthController extends GetxController {
 
   void logout() {
     user.value = null;
-    // Central detectará el cambio y mostrará LoginPage
   }
 }

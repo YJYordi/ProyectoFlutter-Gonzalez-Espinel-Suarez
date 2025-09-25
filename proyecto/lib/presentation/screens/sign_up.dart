@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:proyecto/presentation/providers/auth_provider.dart';
+import 'package:get/get.dart';
+import '../controllers/auth_controller.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -16,6 +16,14 @@ class _SignUpPageState extends State<SignUpPage> {
   final _passCtrl = TextEditingController();
   final _confirmCtrl = TextEditingController();
 
+  late AuthController _authController;
+
+  @override
+  void initState() {
+    super.initState();
+    _authController = Get.find<AuthController>();
+  }
+
   @override
   void dispose() {
     _nameCtrl.dispose();
@@ -27,31 +35,20 @@ class _SignUpPageState extends State<SignUpPage> {
 
   void _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    final auth = context.read<AuthProvider>();
-    final error = await auth.register(
+
+    await _authController.register(
       name: _nameCtrl.text.trim(),
       username: _userCtrl.text.trim(),
       password: _passCtrl.text,
     );
-    if (mounted) {
-      if (error == null) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Cuenta creada. Inicia sesión.')),
-        );
-      } else {
-        showDialog(
-          context: context,
-          builder: (_) => AlertDialog(
-            title: const Text('No se pudo crear la cuenta'),
-            content: Text(error),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
-            ],
-          ),
-        );
-      }
-    }
+
+    // Vuelve al login automáticamente después de registro
+    Get.back();
+    Get.snackbar(
+      'Éxito',
+      'Cuenta creada. Inicia sesión.',
+      snackPosition: SnackPosition.BOTTOM,
+    );
   }
 
   @override
@@ -68,12 +65,7 @@ class _SignUpPageState extends State<SignUpPage> {
           key: _formKey,
           child: ListView(
             children: [
-              // Logo o título
-              Icon(
-                Icons.person_add,
-                size: 60,
-                color: Colors.blue[600],
-              ),
+              Icon(Icons.person_add, size: 60, color: Colors.blue[600]),
               const SizedBox(height: 20),
               Text(
                 'Crear Nueva Cuenta',
@@ -84,8 +76,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 30),
-              
-              // Campo de nombre
+
               TextFormField(
                 controller: _nameCtrl,
                 decoration: InputDecoration(
@@ -97,11 +88,11 @@ class _SignUpPageState extends State<SignUpPage> {
                   filled: true,
                   fillColor: Colors.grey[50],
                 ),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Requerido' : null,
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Requerido' : null,
               ),
               const SizedBox(height: 16),
-              
-              // Campo de usuario
+
               TextFormField(
                 controller: _userCtrl,
                 decoration: InputDecoration(
@@ -113,11 +104,11 @@ class _SignUpPageState extends State<SignUpPage> {
                   filled: true,
                   fillColor: Colors.grey[50],
                 ),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Requerido' : null,
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Requerido' : null,
               ),
               const SizedBox(height: 16),
-              
-              // Campo de contraseña
+
               TextFormField(
                 controller: _passCtrl,
                 decoration: InputDecoration(
@@ -130,11 +121,11 @@ class _SignUpPageState extends State<SignUpPage> {
                   fillColor: Colors.grey[50],
                 ),
                 obscureText: true,
-                validator: (v) => (v == null || v.length < 4) ? 'Mínimo 4 caracteres' : null,
+                validator: (v) =>
+                    (v == null || v.length < 4) ? 'Mínimo 4 caracteres' : null,
               ),
               const SizedBox(height: 16),
-              
-              // Campo de confirmar contraseña
+
               TextFormField(
                 controller: _confirmCtrl,
                 decoration: InputDecoration(
@@ -150,31 +141,34 @@ class _SignUpPageState extends State<SignUpPage> {
                 validator: (v) => v != _passCtrl.text ? 'No coincide' : null,
               ),
               const SizedBox(height: 30),
-              
-              // Botón de registro
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _submit,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue[600],
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+
+              Obx(
+                () => SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _authController.isLoading.value ? null : _submit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue[600],
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
-                  ),
-                  child: const Text(
-                    'Crear Cuenta',
-                    style: TextStyle(fontSize: 16),
+                    child: Text(
+                      _authController.isLoading.value
+                          ? 'Registrando...'
+                          : 'Crear Cuenta',
+                      style: const TextStyle(fontSize: 16),
+                    ),
                   ),
                 ),
               ),
+
               const SizedBox(height: 16),
-              
-              // Botón de volver al login
+
               TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => Get.back(),
                 child: const Text(
                   '¿Ya tienes cuenta? Inicia sesión aquí',
                   style: TextStyle(fontSize: 16),
@@ -187,5 +181,3 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 }
-
-

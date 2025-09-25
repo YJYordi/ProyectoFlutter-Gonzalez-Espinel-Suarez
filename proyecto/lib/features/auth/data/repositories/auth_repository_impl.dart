@@ -1,10 +1,8 @@
-import 'package:proyecto/Domain/Entities/user.dart';
-import 'package:proyecto/Domain/repositories/auth_repository.dart';
-//import 'package:proyecto/data/datasources/memory_data_source.dart';
-import 'package:proyecto/data/datasources/persistent_data_source.dart';
+import 'package:proyecto/features/auth/domain/entities/user.dart';
+import 'package:proyecto/features/auth/domain/repositories/auth_repository.dart';
+import 'package:proyecto/core/data/datasources/persistent_data_source.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
-  //final InMemoryDataSource dataSource;
   final PersistentDataSource dataSource;
 
   AuthRepositoryImpl(this.dataSource);
