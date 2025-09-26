@@ -1,42 +1,48 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'presentation/screens/log_in.dart';
-import 'presentation/screens/home_page.dart';
-import 'presentation/screens/profile_screen.dart';
-import 'package:proyecto/data/datasources/persistent_data_source.dart';
-import 'package:proyecto/data/repositories/auth_repository_impl.dart';
-import 'package:proyecto/data/repositories/course_repository_impl.dart';
-import 'package:proyecto/Domain/usecases/login_usecase.dart';
-import 'package:proyecto/Domain/usecases/register_usecase.dart';
-import 'package:proyecto/Domain/usecases/get_courses_usecase.dart';
-import 'package:proyecto/Domain/usecases/create_course_usecase.dart';
-import 'package:proyecto/Domain/usecases/enroll_in_course_usecase.dart';
-import 'package:proyecto/Domain/usecases/get_course_enrollments_usecase.dart';
-import 'package:proyecto/Domain/usecases/delete_course_usecase.dart';
-import 'package:proyecto/Domain/usecases/unenroll_from_course_usecase.dart';
-import 'package:proyecto/Domain/usecases/get_courses_by_creator_usecase.dart';
-import 'package:proyecto/Domain/usecases/get_courses_by_student_usecase.dart';
-import 'package:proyecto/Domain/usecases/get_courses_by_category_usecase.dart';
-import 'package:proyecto/Domain/usecases/create_category_usecase.dart';
-import 'package:proyecto/Domain/usecases/delete_category_usecase.dart';
-import 'package:proyecto/Domain/usecases/edit_category_usecase.dart';
-import 'package:proyecto/Domain/usecases/enroll_category_usecase.dart';
-import 'package:proyecto/Domain/usecases/unenroll_category_usecase.dart';
-import 'package:proyecto/Domain/usecases/create_evaluation_usecase.dart';
-import 'package:proyecto/Domain/usecases/update_evaluation_usecase.dart';
-import 'package:proyecto/Domain/usecases/get_evaluations_by_group_usecase.dart';
-import 'package:proyecto/Domain/usecases/get_pending_evaluations_usecase.dart';
-import 'package:proyecto/Domain/usecases/start_evaluation_session_usecase.dart';
-import 'package:proyecto/presentation/providers/auth_provider.dart';
-import 'package:proyecto/presentation/providers/course_provider.dart';
-import 'package:proyecto/presentation/providers/category_provider.dart';
-import 'package:proyecto/presentation/providers/role_provider.dart';
-import 'package:proyecto/presentation/providers/evaluation_provider.dart';
-import 'package:proyecto/presentation/screens/category_courses_screen.dart';
-import 'package:proyecto/presentation/screens/sign_up.dart';
-import 'package:proyecto/presentation/screens/course_detail_screen.dart';
-import 'package:proyecto/presentation/screens/course_management_screen.dart';
-import 'package:proyecto/Domain/Entities/course.dart';
+import 'package:get/get.dart';
+import 'features/authentication/presentation/screens/log_in.dart';
+import 'shared/presentation/screens/home_page.dart';
+import 'features/profile_management/presentation/screens/profile_screen.dart';
+import 'shared/data/datasources/persistent_data_source.dart';
+import 'features/authentication/data/repositories/auth_repository_impl.dart';
+import 'features/authentication/data/datasources/remote_auth_data_source.dart';
+import 'features/course_management/data/repositories/course_repository_impl.dart';
+import 'features/authentication/presentation/controllers/auth_controller.dart';
+import 'features/course_management/presentation/controllers/course_controller.dart';
+import 'features/category_management/presentation/controllers/category_controller.dart';
+import 'features/evaluation_system/presentation/controllers/evaluation_controller.dart';
+import 'shared/presentation/controllers/role_controller.dart';
+import 'features/authentication/domain/usecases/login_usecase.dart';
+import 'features/authentication/domain/usecases/register_usecase.dart';
+import 'features/authentication/domain/usecases/login_with_api_usecase.dart';
+import 'features/authentication/domain/usecases/register_with_api_usecase.dart';
+import 'features/authentication/domain/usecases/logout_with_api_usecase.dart';
+import 'features/authentication/domain/usecases/refresh_token_usecase.dart';
+import 'features/authentication/domain/usecases/validate_token_usecase.dart';
+import 'features/course_management/domain/usecases/get_courses_usecase.dart';
+import 'features/course_management/domain/usecases/create_course_usecase.dart';
+import 'features/course_management/domain/usecases/enroll_in_course_usecase.dart';
+import 'features/course_management/domain/usecases/get_course_enrollments_usecase.dart';
+import 'features/course_management/domain/usecases/delete_course_usecase.dart';
+import 'features/course_management/domain/usecases/unenroll_from_course_usecase.dart';
+import 'features/course_management/domain/usecases/get_courses_by_creator_usecase.dart';
+import 'features/course_management/domain/usecases/get_courses_by_student_usecase.dart';
+import 'features/course_management/domain/usecases/get_courses_by_category_usecase.dart';
+import 'features/category_management/domain/usecases/create_category_usecase.dart';
+import 'features/category_management/domain/usecases/delete_category_usecase.dart';
+import 'features/category_management/domain/usecases/edit_category_usecase.dart';
+import 'features/category_management/domain/usecases/enroll_category_usecase.dart';
+import 'features/category_management/domain/usecases/unenroll_category_usecase.dart';
+import 'features/evaluation_system/domain/usecases/create_evaluation_usecase.dart';
+import 'features/evaluation_system/domain/usecases/update_evaluation_usecase.dart';
+import 'features/evaluation_system/domain/usecases/get_evaluations_by_group_usecase.dart';
+import 'features/evaluation_system/domain/usecases/get_pending_evaluations_usecase.dart';
+import 'features/evaluation_system/domain/usecases/start_evaluation_session_usecase.dart';
+import 'features/category_management/presentation/screens/category_courses_screen.dart';
+import 'features/authentication/presentation/screens/sign_up.dart';
+import 'features/course_management/presentation/screens/course_detail_screen.dart';
+import 'features/course_management/presentation/screens/course_management_screen.dart';
+import 'features/course_management/domain/entities/course.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -52,190 +58,163 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   late final PersistentDataSource _dataSource;
+  late final RemoteAuthDataSource _remoteAuthDataSource;
   late final AuthRepositoryImpl _authRepo;
   late final CourseRepositoryImpl _courseRepo;
+  bool _isInitialized = false;
 
   @override
   void initState() {
     super.initState();
     _dataSource = PersistentDataSource();
-    _authRepo = AuthRepositoryImpl(_dataSource);
+    _remoteAuthDataSource = RemoteAuthDataSource();
+    _authRepo = AuthRepositoryImpl(_dataSource, _remoteAuthDataSource);
     _courseRepo = CourseRepositoryImpl(_dataSource);
+    debugPrint('Repositories initialized successfully');
     _initializeApp();
   }
 
   Future<void> _initializeApp() async {
-    await _dataSource.initialize();
-    if (mounted) {
-      setState(() {});
+    try {
+      await _dataSource.initialize();
+      if (mounted) {
+        setState(() {
+          _isInitialized = true;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error initializing app: $e');
+      if (mounted) {
+        setState(() {
+          _isInitialized =
+              true; // Permitir que la app funcione incluso con errores
+        });
+      }
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider<AuthProvider>(
-          create: (_) => AuthProvider(
-            loginUseCase: LoginUseCase(_authRepo),
-            registerUseCase: RegisterUseCase(_authRepo),
-          ),
+  void _initializeControllers() {
+    debugPrint('Initializing GetX controllers');
+
+    // AuthController
+    Get.put(
+      AuthController(
+        loginUseCase: LoginUseCase(_authRepo),
+        registerUseCase: RegisterUseCase(_authRepo),
+        loginWithAPIUseCase: LoginWithAPIUseCase(_authRepo),
+        registerWithAPIUseCase: RegisterWithAPIUseCase(_authRepo),
+        logoutWithAPIUseCase: LogoutWithAPIUseCase(_authRepo),
+        refreshTokenUseCase: RefreshTokenUseCase(_authRepo),
+        validateTokenUseCase: ValidateTokenUseCase(_authRepo),
+      ),
+    );
+
+    // CourseController
+    Get.put(
+      CourseController(
+        getCoursesUseCase: GetCoursesUseCase(_courseRepo),
+        createCourseUseCase: CreateCourseUseCase(_courseRepo),
+        enrollInCourseUseCase: EnrollInCourseUseCase(_courseRepo),
+        getCourseEnrollmentsUseCase: GetCourseEnrollmentsUseCase(_courseRepo),
+        deleteCourseUseCase: DeleteCourseUseCase(_courseRepo),
+        unenrollFromCourseUseCase: UnenrollFromCourseUseCase(_courseRepo),
+        getCoursesByCreatorUseCase: GetCoursesByCreatorUseCase(_courseRepo),
+        getCoursesByStudentUseCase: GetCoursesByStudentUseCase(_courseRepo),
+        getCoursesByCategoryUseCase: GetCoursesByCategoryUseCase(_courseRepo),
+        courseRepository: _courseRepo,
+      ),
+    );
+
+    // CategoryController
+    Get.put(
+      CategoryController(
+        repository: _courseRepo,
+        createCategoryUseCase: CreateCategoryUseCase(_courseRepo),
+        deleteCategoryUseCase: DeleteCategoryUseCase(_courseRepo),
+        editCategoryUseCase: EditCategoryUseCase(_courseRepo),
+        enrollCategoryUseCase: EnrollCategoryUseCase(_courseRepo),
+        unenrollCategoryUseCase: UnenrollCategoryUseCase(_courseRepo),
+      ),
+    );
+
+    // RoleController
+    Get.put(RoleController());
+
+    // EvaluationController
+    Get.put(
+      EvaluationController(
+        createEvaluationUseCase: CreateEvaluationUseCase(_courseRepo),
+        updateEvaluationUseCase: UpdateEvaluationUseCase(_courseRepo),
+        getEvaluationsByGroupUseCase: GetEvaluationsByGroupUseCase(_courseRepo),
+        getPendingEvaluationsUseCase: GetPendingEvaluationsUseCase(_courseRepo),
+        startEvaluationSessionUseCase: StartEvaluationSessionUseCase(
+          _courseRepo,
         ),
-        ChangeNotifierProvider<CourseProvider>(
-          create: (_) => CourseProvider(
-            getCoursesUseCase: GetCoursesUseCase(_courseRepo),
-            createCourseUseCase: CreateCourseUseCase(_courseRepo),
-            enrollInCourseUseCase: EnrollInCourseUseCase(_courseRepo),
-            getCourseEnrollmentsUseCase: GetCourseEnrollmentsUseCase(_courseRepo),
-            deleteCourseUseCase: DeleteCourseUseCase(_courseRepo),
-            unenrollFromCourseUseCase: UnenrollFromCourseUseCase(_courseRepo),
-            getCoursesByCreatorUseCase: GetCoursesByCreatorUseCase(_courseRepo),
-            getCoursesByStudentUseCase: GetCoursesByStudentUseCase(_courseRepo),
-            getCoursesByCategoryUseCase: GetCoursesByCategoryUseCase(_courseRepo),
-            courseRepository: _courseRepo,
-          )..loadCourses(),
-        ),
-        ChangeNotifierProvider<CategoryProvider>(
-          create: (_) => CategoryProvider(
-            repository: _courseRepo,
-            createCategoryUseCase: CreateCategoryUseCase(_courseRepo),
-            deleteCategoryUseCase: DeleteCategoryUseCase(_courseRepo),
-            editCategoryUseCase: EditCategoryUseCase(_courseRepo),
-            enrollCategoryUseCase: EnrollCategoryUseCase(_courseRepo),
-            unenrollCategoryUseCase: UnenrollCategoryUseCase(_courseRepo),
-          ),
-        ),
-        ChangeNotifierProvider<RoleProvider>(
-          create: (_) => RoleProvider()..initializeRole(),
-        ),
-        ChangeNotifierProvider<EvaluationProvider>(
-          create: (_) => EvaluationProvider(
-            createEvaluationUseCase: CreateEvaluationUseCase(_courseRepo),
-            updateEvaluationUseCase: UpdateEvaluationUseCase(_courseRepo),
-            getEvaluationsByGroupUseCase: GetEvaluationsByGroupUseCase(_courseRepo),
-            getPendingEvaluationsUseCase: GetPendingEvaluationsUseCase(_courseRepo),
-            startEvaluationSessionUseCase: StartEvaluationSessionUseCase(_courseRepo),
-          ),
-        ),
-      ],
-      child: MaterialApp(
-        title: 'Clases App',
-        initialRoute: '/',
-        routes: {
-          '/': (context) => const LoginPage(),
-          '/home': (context) => const HomePage(),
-          '/perfil': (context) {
-            final args =
-                ModalRoute.of(context)?.settings.arguments as String? ??
-                'Usuario';
-            return ProfileScreen(usuario: args);
-          },
-          '/signup': (context) => const SignUpPage(),
-          '/course_detail': (context) {
-            final args = ModalRoute.of(context)?.settings.arguments as CourseEntity;
-            return CourseDetailScreen(course: args);
-          },
-          '/category_courses': (context) {
-            final args = ModalRoute.of(context)?.settings.arguments as String;
-            return CategoryCoursesScreen(category: args);
-          },
-          '/course_management': (context) {
-            final course = ModalRoute.of(context)?.settings.arguments as CourseEntity;
-            final authProvider = Provider.of<AuthProvider>(context, listen: false);
-            final currentUser = authProvider.user;
-            if (currentUser == null) {
-              return const LoginPage();
-            }
-            return CourseManagementScreen(course: course, currentUser: currentUser);
-          },
-        },
       ),
     );
   }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('Han sido         veces:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+    if (!_isInitialized) {
+      return MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(height: 20),
+                Text(
+                  'Inicializando aplicación...',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      );
+    }
+
+    // Inicializar controladores de GetX
+    _initializeControllers();
+
+    return GetMaterialApp(
+      title: 'Clases App',
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const LoginPage(),
+        '/home': (context) => const HomePage(),
+        '/perfil': (context) {
+          final args =
+              ModalRoute.of(context)?.settings.arguments as String? ??
+              'Usuario';
+          return ProfileScreen(usuario: args);
+        },
+        '/signup': (context) => const SignUpPage(),
+        '/course_detail': (context) {
+          final args =
+              ModalRoute.of(context)?.settings.arguments as CourseEntity;
+          return CourseDetailScreen(course: args);
+        },
+        '/category_courses': (context) {
+          final args = ModalRoute.of(context)?.settings.arguments as String;
+          return CategoryCoursesScreen(category: args);
+        },
+        '/course_management': (context) {
+          final course =
+              ModalRoute.of(context)?.settings.arguments as CourseEntity;
+          final authController = Get.find<AuthController>();
+          final currentUser = authController.user;
+          if (currentUser == null) {
+            return const LoginPage();
+          }
+          return CourseManagementScreen(
+            course: course,
+            currentUser: currentUser,
+          );
+        },
+      },
     );
   }
 }
