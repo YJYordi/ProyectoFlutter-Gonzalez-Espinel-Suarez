@@ -268,16 +268,6 @@ GetMaterialApp(
 - **Manejo de Errores**: Sistema robusto de manejo de errores de API
 - **Null Safety**: Manejo seguro de valores nulos en respuestas
 
-### 🔄 En Desarrollo
-- **Validación de Tokens**: Implementación automática de refresh tokens
-- **Modo Offline**: Fallback cuando no hay conexión a internet
-- **Mejoras de UI**: Optimizaciones adicionales en las pantallas
-
-### 📋 Próximas Características
-- **Biometría**: Login con huella dactilar/Face ID
-- **Notificaciones Push**: Integración con Firebase
-- **Temas**: Modo oscuro y personalización de colores
-- **Internacionalización**: Soporte para múltiples idiomas
 
 ## Notas de Desarrollo
 
