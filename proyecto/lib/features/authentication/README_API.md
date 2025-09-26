@@ -1,6 +1,6 @@
-# Autenticación con API
+# Módulo de Autenticación
 
-Este módulo implementa la integración con la API de autenticación externa siguiendo los principios de Clean Architecture.
+Este módulo implementa la integración completa con la API de autenticación externa de Roble, siguiendo los principios de Clean Architecture y utilizando GetX para el manejo de estado y navegación.
 
 ## URL Base
 ```
@@ -11,12 +11,12 @@ https://roble-api.openlab.uninorte.edu.co/auth/proyectoflutter_c35bbd8fbe
 
 ### 1. Login
 - **Endpoint**: `POST /login`
-- **Parámetros**: `username`, `password`
+- **Parámetros**: `email`, `password`
 - **Respuesta**: Token de acceso, refresh token y datos del usuario
 
 ### 2. Registro Directo
 - **Endpoint**: `POST /signup-direct`
-- **Parámetros**: `name`, `username`, `password`
+- **Parámetros**: `name`, `email`, `password`
 - **Respuesta**: Token de acceso, refresh token y datos del usuario
 
 ### 3. Logout
@@ -52,15 +52,16 @@ https://roble-api.openlab.uninorte.edu.co/auth/proyectoflutter_c35bbd8fbe
   - `ValidateTokenUseCase`
 
 #### 3. Presentation Layer
-- **`AuthProvider`**: Estado de autenticación con métodos para API
-- **Pantallas**: Login con botón para API
+- **`AuthController`**: Controlador GetX para manejo de estado de autenticación
+- **Pantallas**: Login y Signup integrados con API de Roble
+- **Navegación**: Sistema de navegación con GetX
 
 ## Uso en la Aplicación
 
 ### Login con API
 ```dart
-final authProvider = context.read<AuthProvider>();
-final response = await authProvider.loginWithAPI(username, password);
+final authController = Get.find<AuthController>();
+final response = await authController.loginWithAPI(email, password);
 
 if (response.success) {
   // Usuario autenticado exitosamente
@@ -74,10 +75,10 @@ if (response.success) {
 
 ### Registro con API
 ```dart
-final authProvider = context.read<AuthProvider>();
-final response = await authProvider.registerWithAPI(
+final authController = Get.find<AuthController>();
+final response = await authController.registerWithAPI(
   name: 'Juan Pérez',
-  username: 'juan123',
+  email: 'juan@ejemplo.com',
   password: 'password123',
 );
 
@@ -91,8 +92,8 @@ if (response.success) {
 
 ### Logout con API
 ```dart
-final authProvider = context.read<AuthProvider>();
-final response = await authProvider.logoutWithAPI();
+final authController = Get.find<AuthController>();
+final response = await authController.logoutWithAPI();
 
 if (response.success) {
   // Sesión cerrada exitosamente
@@ -104,8 +105,8 @@ if (response.success) {
 
 ### Validar Token
 ```dart
-final authProvider = context.read<AuthProvider>();
-final response = await authProvider.validateToken();
+final authController = Get.find<AuthController>();
+final response = await authController.validateToken();
 
 if (response.success && response.valid) {
   // Token válido
@@ -116,8 +117,8 @@ if (response.success && response.valid) {
 
 ### Refresh Token
 ```dart
-final authProvider = context.read<AuthProvider>();
-final response = await authProvider.refreshToken();
+final authController = Get.find<AuthController>();
+final response = await authController.refreshToken();
 
 if (response.success) {
   // Token renovado exitosamente
@@ -145,6 +146,41 @@ Todos los métodos de API retornan un objeto `AuthResponse` que incluye:
 - `refreshToken`: Refresh token (si aplica)
 - `user`: Datos del usuario (si aplica)
 
+### Tipos de Errores Manejados
+
+#### Errores de API
+- **Email vacío**: Validación en frontend y backend
+- **Credenciales inválidas**: Manejo de respuestas de error de Roble
+- **Usuario ya existe**: Para el proceso de registro
+- **Token expirado**: Renovación automática con refresh token
+
+#### Errores de Red
+- **Sin conexión**: Mensajes informativos al usuario
+- **Timeout**: Reintentos automáticos
+- **Servidor no disponible**: Fallback a modo offline
+
+#### Errores de Datos
+- **Respuestas nulas**: Manejo con `?.toString() ?? 'DefaultValue'`
+- **Tipos incorrectos**: Validación de tipos en respuestas JSON
+- **Datos faltantes**: Valores por defecto para campos opcionales
+
+### Ejemplo de Manejo de Errores
+```dart
+try {
+  final response = await authController.loginWithAPI(email, password);
+  if (response.success) {
+    // Éxito
+    Get.snackbar('Éxito', 'Login exitoso');
+  } else {
+    // Error de API
+    Get.snackbar('Error', response.error ?? 'Error desconocido');
+  }
+} catch (e) {
+  // Error de red o excepción
+  Get.snackbar('Error', 'Error de conexión: ${e.toString()}');
+}
+```
+
 ## Configuración
 
 ### Dependencias Requeridas
@@ -152,6 +188,7 @@ Todos los métodos de API retornan un objeto `AuthResponse` que incluye:
 dependencies:
   http: ^1.1.0
   shared_preferences: ^2.2.2
+  get: ^4.6.6
 ```
 
 ### Inicialización en main.dart
@@ -161,25 +198,119 @@ final dataSource = PersistentDataSource();
 final remoteAuthDataSource = RemoteAuthDataSource();
 final authRepo = AuthRepositoryImpl(dataSource, remoteAuthDataSource);
 
-// Configurar providers
-ChangeNotifierProvider<AuthProvider>(
-  create: (_) => AuthProvider(
-    // ... use cases locales
-    loginWithAPIUseCase: LoginWithAPIUseCase(authRepo),
-    registerWithAPIUseCase: RegisterWithAPIUseCase(authRepo),
-    logoutWithAPIUseCase: LogoutWithAPIUseCase(authRepo),
-    refreshTokenUseCase: RefreshTokenUseCase(authRepo),
-    validateTokenUseCase: ValidateTokenUseCase(authRepo),
-  ),
-),
+// Configurar controladores GetX
+Get.put(AuthController(
+  // ... use cases locales
+  loginWithAPIUseCase: LoginWithAPIUseCase(authRepo),
+  registerWithAPIUseCase: RegisterWithAPIUseCase(authRepo),
+  logoutWithAPIUseCase: LogoutWithAPIUseCase(authRepo),
+  refreshTokenUseCase: RefreshTokenUseCase(authRepo),
+  validateTokenUseCase: ValidateTokenUseCase(authRepo),
+));
+
+// Configurar GetMaterialApp
+GetMaterialApp(
+  // ... configuración de rutas
+)
 ```
 
 ## Características
 
 - ✅ **Clean Architecture**: Separación clara de responsabilidades
+- ✅ **GetX Integration**: Manejo de estado reactivo y navegación
+- ✅ **API Roble**: Integración completa con la API externa
 - ✅ **Manejo de Errores**: Respuestas estructuradas con información de error
 - ✅ **Gestión de Tokens**: Almacenamiento seguro en SharedPreferences
-- ✅ **Estado de Carga**: Indicadores de loading en la UI
+- ✅ **Estado de Carga**: Indicadores de loading reactivos en la UI
 - ✅ **Validación de Tokens**: Verificación automática de validez
 - ✅ **Refresh Automático**: Renovación de tokens cuando sea necesario
-- ✅ **Compatibilidad**: Funciona junto con el sistema de autenticación local existente
+- ✅ **Navegación GetX**: Sistema de navegación moderno y eficiente
+- ✅ **UI Mejorada**: Pantallas de login y signup optimizadas
+- ✅ **Información de Usuario**: Pantalla completa de perfil con datos de Roble
+- ✅ **Null Safety**: Manejo robusto de valores nulos en respuestas de API
+
+## Pantallas Implementadas
+
+### Login Screen
+- Campo de email/username
+- Campo de contraseña
+- Botón de "Iniciar Sesión" que usa la API de Roble
+- Manejo de errores con GetX snackbars
+- Navegación automática al home tras login exitoso
+
+### Signup Screen
+- Campo de nombre completo
+- Campo de email
+- Campo de contraseña
+- Botón de "Crear Cuenta" que usa la API de Roble
+- Validación de email con regex
+- Navegación automática al home tras registro exitoso
+
+### Profile Screen
+- Información básica del usuario
+- Botón para ver información personal detallada
+- Opciones de configuración
+- Botón de cerrar sesión
+
+### User Info Screen
+- Pantalla completa con información detallada del usuario
+- Datos sincronizados con Roble
+- Diseño moderno con gradientes y cards
+- Botón de actualizar información
+
+## Estado Actual del Proyecto
+
+### ✅ Completado
+- **Migración a GetX**: Todo el proyecto usa GetX para estado y navegación
+- **Integración API Roble**: Login y signup funcionando con la API externa
+- **Limpieza de Provider**: Eliminados todos los archivos y referencias de Provider
+- **Pantallas de Perfil**: Implementación completa de información de usuario
+- **Manejo de Errores**: Sistema robusto de manejo de errores de API
+- **Null Safety**: Manejo seguro de valores nulos en respuestas
+
+### 🔄 En Desarrollo
+- **Validación de Tokens**: Implementación automática de refresh tokens
+- **Modo Offline**: Fallback cuando no hay conexión a internet
+- **Mejoras de UI**: Optimizaciones adicionales en las pantallas
+
+### 📋 Próximas Características
+- **Biometría**: Login con huella dactilar/Face ID
+- **Notificaciones Push**: Integración con Firebase
+- **Temas**: Modo oscuro y personalización de colores
+- **Internacionalización**: Soporte para múltiples idiomas
+
+## Notas de Desarrollo
+
+### Cambios Importantes
+1. **Provider → GetX**: Migración completa del sistema de estado
+2. **API Integration**: Cambio de autenticación local a API externa
+3. **Email vs Username**: Los endpoints ahora usan email en lugar de username
+4. **Null Safety**: Implementación de manejo seguro de valores nulos
+
+### Estructura de Archivos
+```
+lib/features/authentication/
+├── data/
+│   ├── datasources/
+│   │   └── remote_auth_data_source.dart
+│   └── repositories/
+│       └── auth_repository_impl.dart
+├── domain/
+│   ├── entities/
+│   │   ├── auth_response.dart
+│   │   └── user.dart
+│   ├── repositories/
+│   │   └── auth_repository.dart
+│   └── usecases/
+│       ├── login_with_api_usecase.dart
+│       ├── register_with_api_usecase.dart
+│       ├── logout_with_api_usecase.dart
+│       ├── refresh_token_usecase.dart
+│       └── validate_token_usecase.dart
+└── presentation/
+    ├── controllers/
+    │   └── auth_controller.dart
+    └── screens/
+        ├── log_in.dart
+        └── sign_up.dart
+```
