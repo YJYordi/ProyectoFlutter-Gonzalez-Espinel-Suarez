@@ -128,13 +128,9 @@ class _HomePageState extends State<HomePage> {
                               alignment: Alignment.centerLeft,
                               child: ElevatedButton.icon(
                                 onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const CourseCreationScreen(),
-                                    ),
-                                  ).then((_) => _loadUserCourses());
+                                  Get.to(
+                                    () => const CourseCreationScreen(),
+                                  )?.then((_) => _loadUserCourses());
                                 },
                                 icon: const Icon(Icons.add),
                                 label: const Text('Crear curso'),
@@ -338,13 +334,9 @@ class _HomePageState extends State<HomePage> {
                                       width: double.infinity,
                                       child: ElevatedButton(
                                         onPressed: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  CourseDetailScreen(
-                                                    course: curso,
-                                                  ),
+                                          Get.to(
+                                            () => CourseDetailScreen(
+                                              course: curso,
                                             ),
                                           );
                                         },
@@ -392,8 +384,7 @@ class _HomePageState extends State<HomePage> {
                     leading: const Icon(Icons.code),
                     title: const Text('Desarrollo Frontend'),
                     trailing: const Icon(Icons.arrow_forward_ios),
-                    onTap: () => Navigator.pushNamed(
-                      context,
+                    onTap: () => Get.toNamed(
                       '/category_courses',
                       arguments: 'Desarrollo Frontend',
                     ),
@@ -402,8 +393,7 @@ class _HomePageState extends State<HomePage> {
                     leading: const Icon(Icons.storage),
                     title: const Text('Desarrollo Backend'),
                     trailing: const Icon(Icons.arrow_forward_ios),
-                    onTap: () => Navigator.pushNamed(
-                      context,
+                    onTap: () => Get.toNamed(
                       '/category_courses',
                       arguments: 'Desarrollo Backend',
                     ),
@@ -412,18 +402,14 @@ class _HomePageState extends State<HomePage> {
                     leading: const Icon(Icons.design_services),
                     title: const Text('UX/UI'),
                     trailing: const Icon(Icons.arrow_forward_ios),
-                    onTap: () => Navigator.pushNamed(
-                      context,
-                      '/category_courses',
-                      arguments: 'UX/UI',
-                    ),
+                    onTap: () =>
+                        Get.toNamed('/category_courses', arguments: 'UX/UI'),
                   ),
                   ListTile(
                     leading: const Icon(Icons.web),
                     title: const Text('Diseño Web'),
                     trailing: const Icon(Icons.arrow_forward_ios),
-                    onTap: () => Navigator.pushNamed(
-                      context,
+                    onTap: () => Get.toNamed(
                       '/category_courses',
                       arguments: 'Diseño Web',
                     ),
@@ -432,8 +418,7 @@ class _HomePageState extends State<HomePage> {
                     leading: const Icon(Icons.developer_mode),
                     title: const Text('Desarrollo Web'),
                     trailing: const Icon(Icons.arrow_forward_ios),
-                    onTap: () => Navigator.pushNamed(
-                      context,
+                    onTap: () => Get.toNamed(
                       '/category_courses',
                       arguments: 'Desarrollo Web',
                     ),
@@ -442,8 +427,7 @@ class _HomePageState extends State<HomePage> {
                     leading: const Icon(Icons.all_inclusive),
                     title: const Text('Desarrollo Full Stack'),
                     trailing: const Icon(Icons.arrow_forward_ios),
-                    onTap: () => Navigator.pushNamed(
-                      context,
+                    onTap: () => Get.toNamed(
                       '/category_courses',
                       arguments: 'Desarrollo Full Stack',
                     ),
@@ -452,18 +436,14 @@ class _HomePageState extends State<HomePage> {
                     leading: const Icon(Icons.settings),
                     title: const Text('Docker'),
                     trailing: const Icon(Icons.arrow_forward_ios),
-                    onTap: () => Navigator.pushNamed(
-                      context,
-                      '/category_courses',
-                      arguments: 'Docker',
-                    ),
+                    onTap: () =>
+                        Get.toNamed('/category_courses', arguments: 'Docker'),
                   ),
                   ListTile(
                     leading: const Icon(Icons.storage),
                     title: const Text('Bases de Datos'),
                     trailing: const Icon(Icons.arrow_forward_ios),
-                    onTap: () => Navigator.pushNamed(
-                      context,
+                    onTap: () => Get.toNamed(
                       '/category_courses',
                       arguments: 'Bases de Datos',
                     ),
@@ -472,8 +452,7 @@ class _HomePageState extends State<HomePage> {
                     leading: const Icon(Icons.phone_android),
                     title: const Text('Flutter Básico'),
                     trailing: const Icon(Icons.arrow_forward_ios),
-                    onTap: () => Navigator.pushNamed(
-                      context,
+                    onTap: () => Get.toNamed(
                       '/category_courses',
                       arguments: 'Flutter Básico',
                     ),
@@ -482,8 +461,7 @@ class _HomePageState extends State<HomePage> {
                     leading: const Icon(Icons.phone_android),
                     title: const Text('Flutter Intermedio'),
                     trailing: const Icon(Icons.arrow_forward_ios),
-                    onTap: () => Navigator.pushNamed(
-                      context,
+                    onTap: () => Get.toNamed(
                       '/category_courses',
                       arguments: 'Flutter Intermedio',
                     ),
@@ -492,8 +470,7 @@ class _HomePageState extends State<HomePage> {
                     leading: const Icon(Icons.phone_android),
                     title: const Text('Flutter Avanzado'),
                     trailing: const Icon(Icons.arrow_forward_ios),
-                    onTap: () => Navigator.pushNamed(
-                      context,
+                    onTap: () => Get.toNamed(
                       '/category_courses',
                       arguments: 'Flutter Avanzado',
                     ),
@@ -566,46 +543,39 @@ class _HomePageState extends State<HomePage> {
             // Navegar a la pantalla de evaluaciones según el rol
             if (roleController.isProfessor) {
               // Para profesores: mostrar todas las evaluaciones de sus cursos
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ProfessorEvaluationsScreen(
-                    course: createdCourses.isNotEmpty
-                        ? createdCourses.first
-                        : CourseEntity(
-                            id: 'mock',
-                            title: 'Mis Cursos',
-                            description: 'Evaluaciones de todos los cursos',
-                            creatorUsername:
-                                authController.user?.username ?? '',
-                            creatorName: authController.user?.name ?? '',
-                            categories: [],
-                            maxEnrollments: 0,
-                            currentEnrollments: 0,
-                            createdAt: DateTime.now(),
-                            schedule: '',
-                            location: '',
-                            price: 0.0,
-                            isRandomAssignment: false,
-                          ),
-                    professorUsername: authController.user?.username ?? '',
-                  ),
+              Get.to(
+                () => ProfessorEvaluationsScreen(
+                  course: createdCourses.isNotEmpty
+                      ? createdCourses.first
+                      : CourseEntity(
+                          id: 'mock',
+                          title: 'Mis Cursos',
+                          description: 'Evaluaciones de todos los cursos',
+                          creatorUsername: authController.user?.username ?? '',
+                          creatorName: authController.user?.name ?? '',
+                          categories: [],
+                          maxEnrollments: 0,
+                          currentEnrollments: 0,
+                          createdAt: DateTime.now(),
+                          schedule: '',
+                          location: '',
+                          price: 0.0,
+                          isRandomAssignment: false,
+                        ),
+                  professorUsername: authController.user?.username ?? '',
                 ),
               );
             } else {
               // Para estudiantes: mostrar evaluaciones pendientes
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PendingEvaluationsScreen(
-                    username: authController.user?.username ?? '',
-                  ),
+              Get.to(
+                () => PendingEvaluationsScreen(
+                  username: authController.user?.username ?? '',
                 ),
               );
             }
           } else if (index == 3) {
             // Navegar a la pantalla de perfil
-            Navigator.pushNamed(context, '/perfil', arguments: displayName);
+            Get.toNamed('/perfil', arguments: displayName);
           } else {
             setState(() {
               _selectedIndex = index;
@@ -684,12 +654,9 @@ class _HomePageState extends State<HomePage> {
           final roleController = Get.find<RoleController>();
           return ElevatedButton(
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => CourseDetailScreen(course: course),
-                ),
-              ).then((_) => _loadUserCourses());
+              Get.to(
+                () => CourseDetailScreen(course: course),
+              )?.then((_) => _loadUserCourses());
             },
             child: Text(roleController.isProfessor ? 'Gestionar' : 'Ver más'),
           );

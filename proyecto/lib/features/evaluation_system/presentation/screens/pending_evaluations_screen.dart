@@ -257,15 +257,12 @@ class _PendingEvaluationsScreenState extends State<PendingEvaluationsScreen> {
     final group = category.groups.first;
 
     if (mounted) {
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => EvaluationScreen(
-            course: course,
-            category: category,
-            group: group,
-            evaluatorUsername: evaluation.evaluatorUsername,
-          ),
+      await Get.to(
+        () => EvaluationScreen(
+          course: course,
+          category: category,
+          group: group,
+          evaluatorUsername: evaluation.evaluatorUsername,
         ),
       );
 

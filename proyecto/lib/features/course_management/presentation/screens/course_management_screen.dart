@@ -15,10 +15,10 @@ class CourseManagementScreen extends StatefulWidget {
   final UserEntity currentUser;
 
   const CourseManagementScreen({
-    Key? key,
+    super.key,
     required this.course,
     required this.currentUser,
-  }) : super(key: key);
+  });
 
   @override
   State<CourseManagementScreen> createState() => _CourseManagementScreenState();
@@ -451,27 +451,21 @@ class _CourseManagementScreenState extends State<CourseManagementScreen> {
   }
 
   void _navigateToEvaluation(CategoryEntity category, GroupEntity group) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => EvaluationScreen(
-          course: widget.course,
-          category: category,
-          group: group,
-          evaluatorUsername: widget.currentUser.username,
-        ),
+    Get.to(
+      () => EvaluationScreen(
+        course: widget.course,
+        category: category,
+        group: group,
+        evaluatorUsername: widget.currentUser.username,
       ),
     );
   }
 
   void _navigateToProfessorEvaluations() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ProfessorEvaluationsScreen(
-          course: widget.course,
-          professorUsername: widget.currentUser.username,
-        ),
+    Get.to(
+      () => ProfessorEvaluationsScreen(
+        course: widget.course,
+        professorUsername: widget.currentUser.username,
       ),
     );
   }
@@ -489,7 +483,7 @@ class _CourseManagementScreenState extends State<CourseManagementScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Get.back(),
             child: const Text('Cancelar'),
           ),
           ElevatedButton(

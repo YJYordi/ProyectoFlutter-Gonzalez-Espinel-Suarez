@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:proyecto/features/category_management/domain/entities/category.dart';
 
 class GroupMembersModal extends StatelessWidget {
@@ -18,9 +19,7 @@ class GroupMembersModal extends StatelessWidget {
     final isCurrentUserInGroup = group.members.contains(currentUsername);
 
     return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
         width: MediaQuery.of(context).size.width * 0.9,
         height: MediaQuery.of(context).size.height * 0.6,
@@ -32,7 +31,7 @@ class GroupMembersModal extends StatelessWidget {
             Row(
               children: [
                 IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () => Get.back(),
                   icon: const Icon(Icons.close),
                   style: IconButton.styleFrom(
                     backgroundColor: Colors.grey[200],
@@ -64,7 +63,7 @@ class GroupMembersModal extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            
+
             // Group info
             Container(
               padding: const EdgeInsets.all(12),
@@ -87,26 +86,20 @@ class GroupMembersModal extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            
+
             // Members list
             const Text(
               'Miembros:',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-            
+
             Expanded(
               child: group.members.isEmpty
                   ? const Center(
                       child: Text(
                         'No hay miembros en este grupo',
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 16,
-                        ),
+                        style: TextStyle(color: Colors.grey, fontSize: 16),
                       ),
                     )
                   : ListView.builder(
@@ -114,14 +107,18 @@ class GroupMembersModal extends StatelessWidget {
                       itemBuilder: (context, index) {
                         final member = group.members[index];
                         final isCurrentUser = member == currentUsername;
-                        
+
                         return Container(
                           margin: const EdgeInsets.only(bottom: 8),
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: isCurrentUser ? Colors.blue[50] : Colors.white,
+                            color: isCurrentUser
+                                ? Colors.blue[50]
+                                : Colors.white,
                             border: Border.all(
-                              color: isCurrentUser ? Colors.blue : Colors.grey[300]!,
+                              color: isCurrentUser
+                                  ? Colors.blue
+                                  : Colors.grey[300]!,
                             ),
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -129,7 +126,9 @@ class GroupMembersModal extends StatelessWidget {
                             children: [
                               CircleAvatar(
                                 radius: 20,
-                                backgroundColor: isCurrentUser ? Colors.blue : Colors.grey[400],
+                                backgroundColor: isCurrentUser
+                                    ? Colors.blue
+                                    : Colors.grey[400],
                                 child: Text(
                                   member[0].toUpperCase(),
                                   style: const TextStyle(
@@ -144,14 +143,21 @@ class GroupMembersModal extends StatelessWidget {
                                   member,
                                   style: TextStyle(
                                     fontSize: 16,
-                                    fontWeight: isCurrentUser ? FontWeight.bold : FontWeight.normal,
-                                    color: isCurrentUser ? Colors.blue[800] : Colors.black87,
+                                    fontWeight: isCurrentUser
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                    color: isCurrentUser
+                                        ? Colors.blue[800]
+                                        : Colors.black87,
                                   ),
                                 ),
                               ),
                               if (isCurrentUser)
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.blue,
                                     borderRadius: BorderRadius.circular(12),

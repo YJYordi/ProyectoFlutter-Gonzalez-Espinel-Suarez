@@ -42,7 +42,7 @@ class _CourseCreationScreenState extends State<CourseCreationScreen> {
         title: const Text('Crear Curso'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Get.back(),
         ),
       ),
       body: SingleChildScrollView(
@@ -183,7 +183,7 @@ class _CourseCreationScreenState extends State<CourseCreationScreen> {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => Navigator.of(context).pop(),
+                      onPressed: () => Get.back(),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),

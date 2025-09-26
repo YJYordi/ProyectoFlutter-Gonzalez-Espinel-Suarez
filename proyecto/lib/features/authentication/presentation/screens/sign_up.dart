@@ -38,7 +38,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
       if (mounted) {
         if (response.success) {
-          Navigator.pop(context);
+          Get.back();
           Get.snackbar('Éxito', 'Cuenta creada exitosamente con Roble');
         } else {
           Get.dialog(
@@ -196,7 +196,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
               // Botón de volver al login
               TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => Get.back(),
                 child: const Text(
                   '¿Ya tienes cuenta? Inicia sesión aquí',
                   style: TextStyle(fontSize: 16),

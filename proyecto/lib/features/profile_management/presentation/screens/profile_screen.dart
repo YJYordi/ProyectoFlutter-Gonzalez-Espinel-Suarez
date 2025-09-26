@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:proyecto/features/authentication/presentation/controllers/auth_controller.dart';
+import 'package:proyecto/features/authentication/domain/entities/user.dart';
+import 'package:proyecto/features/profile_management/presentation/screens/user_info_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   final String usuario;
@@ -65,7 +67,7 @@ class ProfileScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      'Estudiante & Profesor',
+                      _getRoleDisplayName(loggedUser?.role ?? UserRole.student),
                       style: TextStyle(
                         color: Colors.blue[800],
                         fontWeight: FontWeight.w500,
@@ -164,19 +166,16 @@ class ProfileScreen extends StatelessWidget {
   }
 
   void _showPersonalInfo(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Información Personal'),
-        content: const Text('Esta funcionalidad estará disponible próximamente.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
+    Get.to(() => const UserInfoScreen());
+  }
+
+  String _getRoleDisplayName(UserRole role) {
+    switch (role) {
+      case UserRole.student:
+        return 'Estudiante';
+      case UserRole.teacher:
+        return 'Profesor';
+    }
   }
 
   void _showPrivacySettings(BuildContext context) {
@@ -187,7 +186,7 @@ class ProfileScreen extends StatelessWidget {
         content: const Text('Esta funcionalidad estará disponible próximamente.'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Get.back(),
             child: const Text('OK'),
           ),
         ],
@@ -203,7 +202,7 @@ class ProfileScreen extends StatelessWidget {
         content: const Text('Esta funcionalidad estará disponible próximamente.'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Get.back(),
             child: const Text('OK'),
           ),
         ],
@@ -219,7 +218,7 @@ class ProfileScreen extends StatelessWidget {
         content: const Text('Esta funcionalidad estará disponible próximamente.'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Get.back(),
             child: const Text('OK'),
           ),
         ],
@@ -245,7 +244,7 @@ class ProfileScreen extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Get.back(),
             child: const Text('OK'),
           ),
         ],
@@ -261,7 +260,7 @@ class ProfileScreen extends StatelessWidget {
         content: const Text('¿Estás seguro de que quieres cerrar sesión?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Get.back(),
             child: const Text('Cancelar'),
           ),
           TextButton(

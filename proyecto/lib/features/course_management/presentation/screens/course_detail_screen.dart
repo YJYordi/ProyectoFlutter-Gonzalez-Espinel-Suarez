@@ -86,11 +86,11 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context, false),
+              onPressed: () => Get.back(result: false),
               child: const Text('Cancelar'),
             ),
             TextButton(
-              onPressed: () => Navigator.pop(context, true),
+              onPressed: () => Get.back(result: true),
               child: const Text('Eliminar'),
             ),
           ],
