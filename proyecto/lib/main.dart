@@ -31,6 +31,7 @@ import 'package:proyecto/presentation/screens/sign_up.dart';
 import 'package:proyecto/presentation/screens/course_detail_screen.dart';
 import 'package:proyecto/presentation/screens/course_management_screen.dart';
 import 'package:proyecto/Domain/Entities/course.dart';
+import 'package:proyecto/data/datasources/roble_remote_data_source.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,11 +49,15 @@ class _MyAppState extends State<MyApp> {
   late final PersistentDataSource _dataSource;
   late final AuthRepositoryImpl _authRepo;
   late final CourseRepositoryImpl _courseRepo;
+  late final RobleRemoteDataSource _roble;
 
   @override
   void initState() {
     super.initState();
-    _dataSource = PersistentDataSource();
+    final base = const String.fromEnvironment('ROBLE_API_BASE', defaultValue: 'https://roble.openlab.uninorte.edu.co/api');
+    final token = const String.fromEnvironment('ROBLE_TOKEN', defaultValue: 'appstudents_45c2d5e1e5');
+    _roble = RobleRemoteDataSource(baseUrl: base, projectToken: token);
+    _dataSource = PersistentDataSource(remote: _roble);
     _authRepo = AuthRepositoryImpl(_dataSource);
     _courseRepo = CourseRepositoryImpl(_dataSource);
     _initializeApp();
