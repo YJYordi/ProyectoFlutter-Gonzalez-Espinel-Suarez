@@ -36,6 +36,7 @@ import 'package:proyecto/data/datasources/supabase_remote_data_source.dart';
 import 'package:proyecto/data/datasources/supabase_sync_data_source.dart';
 import 'package:proyecto/data/services/supabase_auth_service.dart';
 import 'package:proyecto/config/supabase_config.dart';
+import 'package:proyecto/data/datasources/roble_remote_data_source.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -64,6 +65,7 @@ class _MyAppState extends State<MyApp> {
   late final SupabaseRemoteDataSource _remoteDataSource;
   late final SupabaseSyncDataSource _syncDataSource;
   late final SupabaseAuthService _authService;
+  late final RobleRemoteDataSource _roble;
 
   @override
   void initState() {
@@ -80,6 +82,10 @@ class _MyAppState extends State<MyApp> {
       syncDataSource: _syncDataSource,
       authService: _authService,
     );
+    final base = const String.fromEnvironment('ROBLE_API_BASE', defaultValue: 'https://roble.openlab.uninorte.edu.co/api');
+    final token = const String.fromEnvironment('ROBLE_TOKEN', defaultValue: 'appstudents_45c2d5e1e5');
+    _roble = RobleRemoteDataSource(baseUrl: base, projectToken: token);
+    _dataSource = PersistentDataSource(remote: _roble);
     _authRepo = AuthRepositoryImpl(_dataSource);
     _courseRepo = CourseRepositoryImpl(_dataSource);
     _initializeApp();
