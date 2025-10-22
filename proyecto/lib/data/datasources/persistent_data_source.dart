@@ -5,10 +5,19 @@ import 'package:proyecto/Domain/Entities/user.dart';
 import 'package:proyecto/Domain/Entities/course_enrollment.dart';
 import 'package:proyecto/data/datasources/memory_data_source.dart';
 import 'package:proyecto/data/datasources/supabase_remote_data_source.dart';
+import 'package:proyecto/data/datasources/supabase_sync_data_source.dart';
+import 'package:proyecto/data/services/supabase_auth_service.dart';
 
 class PersistentDataSource extends InMemoryDataSource {
   final SupabaseRemoteDataSource? remote;
-  PersistentDataSource({this.remote});
+  final SupabaseSyncDataSource? syncDataSource;
+  final SupabaseAuthService? authService;
+  
+  PersistentDataSource({
+    this.remote,
+    this.syncDataSource,
+    this.authService,
+  });
   static const String _usersKey = 'stored_users';
   static const String _coursesKey = 'stored_courses';
   static const String _enrollmentsKey = 'stored_enrollments';
@@ -28,15 +37,80 @@ class PersistentDataSource extends InMemoryDataSource {
     if (users.isEmpty) {
       await _loadPreloadedData();
     }
-    // Intentar sincronizar usuarios desde Supabase si hay remoto
-    if (remote != null) {
+    
+    // Intentar sincronizar con Supabase si está disponible
+    if (syncDataSource != null && authService != null) {
       try {
-        final remoteUsers = await remote!.fetchUsers();
-        for (final u in remoteUsers) {
-          users[u.username] = (u.name, u.password);
-        }
-        await _saveUsers();
-      } catch (_) {}
+        await _syncWithSupabase();
+      } catch (e) {
+        print('Error syncing with Supabase: $e');
+      }
+    }
+  }
+
+  /// Sincronizar datos con Supabase
+  Future<void> _syncWithSupabase() async {
+    if (syncDataSource == null || authService == null) return;
+
+    // Si el usuario está autenticado, descargar sus datos
+    if (authService!.isLoggedIn) {
+      final remoteData = await syncDataSource!.downloadAllData();
+      
+      // Actualizar datos locales con los remotos
+      await _updateLocalDataFromRemote(remoteData);
+    }
+  }
+
+  /// Actualizar datos locales con datos remotos
+  Future<void> _updateLocalDataFromRemote(Map<String, dynamic> remoteData) async {
+    // Actualizar usuarios
+    final remoteUsers = remoteData['users'] as List<UserEntity>;
+    for (final user in remoteUsers) {
+      users[user.username] = (user.name, user.password);
+    }
+
+    // Actualizar cursos
+    final remoteCourses = remoteData['courses'] as List<CourseEntity>;
+    courses.clear();
+    courses.addAll(remoteCourses);
+
+    // Actualizar inscripciones
+    final remoteEnrollments = remoteData['enrollments'] as List<CourseEnrollment>;
+    enrollments.clear();
+    enrollments.addAll(remoteEnrollments);
+
+    // Guardar cambios localmente
+    await _saveUsers();
+    await _saveCourses();
+    await _saveEnrollments();
+  }
+
+  /// Sincronizar datos locales con Supabase
+  Future<void> syncToSupabase() async {
+    if (syncDataSource == null) return;
+
+    try {
+      // Convertir datos locales a entidades
+      final localUsers = users.entries.map((entry) {
+        return UserEntity(
+          username: entry.key,
+          name: entry.value.$1,
+          email: '${entry.key}@example.com',
+          password: entry.value.$2,
+          role: UserRole.student, // Por defecto
+          createdAt: DateTime.now(),
+        );
+      }).toList();
+
+      // Sincronizar todos los datos
+      await syncDataSource!.syncAllUserData(
+        users: localUsers,
+        courses: courses,
+        enrollments: enrollments,
+        categories: [], // TODO: Agregar categorías si es necesario
+      );
+    } catch (e) {
+      print('Error syncing to Supabase: $e');
     }
   }
 
@@ -146,6 +220,40 @@ class PersistentDataSource extends InMemoryDataSource {
 
   @override
   Future<UserEntity?> login(String username, String password) async {
+    // Si tenemos Supabase, intentar autenticación con Supabase
+    if (authService != null) {
+      try {
+        // Buscar el email del usuario (asumiendo formato username@example.com)
+        final email = '$username@example.com';
+        final authResponse = await authService!.signIn(
+          email: email,
+          password: password,
+        );
+
+        if (authResponse.user != null) {
+          final userEntity = authService!.getCurrentUserEntity();
+          if (userEntity != null) {
+            currentUser = userEntity;
+            await _saveCurrentUser();
+            
+            // Log actividad
+            if (syncDataSource != null) {
+              await syncDataSource!.logUserActivity(
+                type: 'login',
+                payload: {'username': username},
+                username: username,
+              );
+            }
+            
+            return userEntity;
+          }
+        }
+      } catch (e) {
+        print('Supabase login failed, trying local: $e');
+      }
+    }
+
+    // Fallback a autenticación local
     final result = await super.login(username, password);
     if (result != null) {
       await _saveCurrentUser();
@@ -160,8 +268,18 @@ class PersistentDataSource extends InMemoryDataSource {
 
   @override
   Future<void> logout() async {
+    // Si tenemos Supabase, cerrar sesión en Supabase también
+    if (authService != null) {
+      try {
+        await authService!.signOut();
+      } catch (e) {
+        print('Error signing out from Supabase: $e');
+      }
+    }
+    
     await super.logout();
     await _saveCurrentUser();
+    
     if (remote != null) {
       try {
         await remote!.insertActivity(type: 'logout', payload: {}, username: null);
@@ -171,6 +289,50 @@ class PersistentDataSource extends InMemoryDataSource {
 
   @override
   Future<UserEntity> register({required String name, required String username, required String password}) async {
+    // Si tenemos Supabase, registrar en Supabase también
+    if (authService != null) {
+      try {
+        final email = '$username@example.com';
+        final authResponse = await authService!.signUp(
+          email: email,
+          password: password,
+          name: name,
+          username: username,
+          role: UserRole.student, // Por defecto
+        );
+
+        if (authResponse.user != null) {
+          final userEntity = UserEntity(
+            username: username,
+            name: name,
+            email: email,
+            password: password,
+            role: UserRole.student,
+            createdAt: DateTime.now(),
+            supabaseUserId: authResponse.user!.id,
+          );
+
+          // Agregar a usuarios locales
+          users[username] = (name, password);
+          await _saveUsers();
+
+          // Log actividad
+          if (syncDataSource != null) {
+            await syncDataSource!.logUserActivity(
+              type: 'register',
+              payload: {'username': username},
+              username: username,
+            );
+          }
+
+          return userEntity;
+        }
+      } catch (e) {
+        print('Supabase registration failed, trying local: $e');
+      }
+    }
+
+    // Fallback a registro local
     final result = await super.register(name: name, username: username, password: password);
     await _saveUsers();
     if (remote != null) {

@@ -7,6 +7,7 @@ class UserEntity {
   final String password;
   final UserRole role;
   final DateTime createdAt;
+  final String? supabaseUserId; // ID de Supabase para sincronización
 
   const UserEntity({
     required this.username, 
@@ -15,6 +16,7 @@ class UserEntity {
     required this.password,
     required this.role,
     required this.createdAt,
+    this.supabaseUserId,
   });
 
   Map<String, dynamic> toJson() {
@@ -25,6 +27,7 @@ class UserEntity {
       'password': password,
       'role': role.name,
       'createdAt': createdAt.toIso8601String(),
+      'supabaseUserId': supabaseUserId,
     };
   }
 
@@ -36,6 +39,7 @@ class UserEntity {
       password: json['password'],
       role: UserRole.values.firstWhere((e) => e.name == json['role']),
       createdAt: DateTime.parse(json['createdAt']),
+      supabaseUserId: json['supabaseUserId'],
     );
   }
 }
