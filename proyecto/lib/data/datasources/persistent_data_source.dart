@@ -7,22 +7,16 @@ import 'package:proyecto/data/datasources/memory_data_source.dart';
 import 'package:proyecto/data/datasources/supabase_remote_data_source.dart';
 import 'package:proyecto/data/datasources/supabase_sync_data_source.dart';
 import 'package:proyecto/data/services/supabase_auth_service.dart';
-
 class PersistentDataSource extends InMemoryDataSource {
-  final SupabaseRemoteDataSource? remote;
+  final SupabaseRemoteDataSource? supabaseRemote;
   final SupabaseSyncDataSource? syncDataSource;
   final SupabaseAuthService? authService;
   
   PersistentDataSource({
-    this.remote,
+    this.supabaseRemote,
     this.syncDataSource,
     this.authService,
   });
-import 'package:proyecto/data/datasources/roble_remote_data_source.dart';
-
-class PersistentDataSource extends InMemoryDataSource {
-  final RobleRemoteDataSource? remote;
-  PersistentDataSource({this.remote});
   static const String _usersKey = 'stored_users';
   static const String _coursesKey = 'stored_courses';
   static const String _enrollmentsKey = 'stored_enrollments';
@@ -116,17 +110,8 @@ class PersistentDataSource extends InMemoryDataSource {
       );
     } catch (e) {
       print('Error syncing to Supabase: $e');
-
-    // Sincronizar usuarios desde Roble si está configurado
-    if (remote != null) {
-      try {
-        final remoteUsers = await remote!.fetchUsers();
-        for (final u in remoteUsers) {
-          users[u.username] = (u.name, u.password);
-        }
-        await _saveUsers();
-      } catch (_) {}
     }
+
   }
 
   Future<void> _loadUsers() async {
@@ -269,26 +254,9 @@ class PersistentDataSource extends InMemoryDataSource {
     }
 
     // Fallback a autenticación local
-    // Si hay remoto, intentar login remoto primero
-    if (remote != null) {
-      try {
-        final remoteUser = await remote!.login(username, password);
-        if (remoteUser != null) {
-          currentUser = remoteUser;
-          await _saveCurrentUser();
-          await remote!.insertActivity(type: 'login', payload: {'username': username}, username: username);
-          return remoteUser;
-        }
-      } catch (_) {}
-    }
     final result = await super.login(username, password);
     if (result != null) {
       await _saveCurrentUser();
-      if (remote != null) {
-        try {
-          await remote!.insertActivity(type: 'login', payload: {'username': username}, username: username);
-        } catch (_) {}
-      }
     }
     return result;
   }
@@ -307,11 +275,6 @@ class PersistentDataSource extends InMemoryDataSource {
     await super.logout();
     await _saveCurrentUser();
     
-    if (remote != null) {
-      try {
-        await remote!.insertActivity(type: 'logout', payload: {}, username: null);
-      } catch (_) {}
-    }
   }
 
   @override
@@ -360,26 +323,8 @@ class PersistentDataSource extends InMemoryDataSource {
     }
 
     // Fallback a registro local
-    // Si hay remoto, registrar primero en remoto
-    if (remote != null) {
-      try {
-        final user = await remote!.register(name: name, username: username, password: password);
-        users[username] = (user.name, password);
-        await _saveUsers();
-        await remote!.insertActivity(type: 'register', payload: {'username': username}, username: username);
-        return user;
-      } catch (_) {
-        // fallback local
-      }
-    }
     final result = await super.register(name: name, username: username, password: password);
     await _saveUsers();
-    if (remote != null) {
-      try {
-        await remote!.upsertUser(result);
-        await remote!.insertActivity(type: 'register', payload: {'username': username}, username: username);
-      } catch (_) {}
-    }
     return result;
   }
 

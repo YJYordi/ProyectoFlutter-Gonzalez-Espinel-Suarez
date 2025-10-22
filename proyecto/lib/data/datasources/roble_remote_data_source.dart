@@ -59,6 +59,14 @@ class RobleRemoteDataSource {
       throw Exception('Roble insertActivity failed: ${res.statusCode} ${res.body}');
     }
   }
+
+  Future<void> upsertUser(UserEntity user) async {
+    final uri = Uri.parse('$baseUrl/database/user');
+    final res = await http.post(uri, headers: _headers, body: jsonEncode(user.toJson()));
+    if (res.statusCode < 200 || res.statusCode >= 300) {
+      throw Exception('Roble upsertUser failed: ${res.statusCode} ${res.body}');
+    }
+  }
 }
 
 

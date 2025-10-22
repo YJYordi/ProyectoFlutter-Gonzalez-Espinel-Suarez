@@ -36,7 +36,6 @@ import 'package:proyecto/data/datasources/supabase_remote_data_source.dart';
 import 'package:proyecto/data/datasources/supabase_sync_data_source.dart';
 import 'package:proyecto/data/services/supabase_auth_service.dart';
 import 'package:proyecto/config/supabase_config.dart';
-import 'package:proyecto/data/datasources/roble_remote_data_source.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -62,10 +61,9 @@ class _MyAppState extends State<MyApp> {
   late final AuthRepositoryImpl _authRepo;
   late final CourseRepositoryImpl _courseRepo;
   late final SupabaseClient _supabase;
-  late final SupabaseRemoteDataSource _remoteDataSource;
+  late final SupabaseRemoteDataSource _supabaseRemoteDataSource;
   late final SupabaseSyncDataSource _syncDataSource;
   late final SupabaseAuthService _authService;
-  late final RobleRemoteDataSource _roble;
 
   @override
   void initState() {
@@ -74,18 +72,15 @@ class _MyAppState extends State<MyApp> {
       SupabaseConfig.supabaseUrl,
       SupabaseConfig.supabaseAnonKey,
     );
-    _remoteDataSource = SupabaseRemoteDataSource(_supabase);
+    _supabaseRemoteDataSource = SupabaseRemoteDataSource(_supabase);
     _syncDataSource = SupabaseSyncDataSource();
     _authService = SupabaseAuthService.instance;
+    
     _dataSource = PersistentDataSource(
-      remote: _remoteDataSource,
+      supabaseRemote: _supabaseRemoteDataSource,
       syncDataSource: _syncDataSource,
       authService: _authService,
     );
-    final base = const String.fromEnvironment('ROBLE_API_BASE', defaultValue: 'https://roble.openlab.uninorte.edu.co/api');
-    final token = const String.fromEnvironment('ROBLE_TOKEN', defaultValue: 'appstudents_45c2d5e1e5');
-    _roble = RobleRemoteDataSource(baseUrl: base, projectToken: token);
-    _dataSource = PersistentDataSource(remote: _roble);
     _authRepo = AuthRepositoryImpl(_dataSource);
     _courseRepo = CourseRepositoryImpl(_dataSource);
     _initializeApp();
@@ -106,6 +101,7 @@ class _MyAppState extends State<MyApp> {
           create: (_) => AuthProvider(
             loginUseCase: LoginUseCase(_authRepo),
             registerUseCase: RegisterUseCase(_authRepo),
+            dataSource: _dataSource,
           ),
         ),
         ChangeNotifierProvider<CourseProvider>(

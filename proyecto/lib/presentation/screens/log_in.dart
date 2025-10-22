@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:proyecto/presentation/providers/auth_provider.dart';
 import 'package:proyecto/presentation/screens/sign_up.dart';
-import 'package:proyecto/data/datasources/persistent_data_source.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -15,17 +14,17 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _userController = TextEditingController();
   final TextEditingController _passController = TextEditingController();
   bool _rememberUser = false;
-  late PersistentDataSource _dataSource;
 
   @override
   void initState() {
     super.initState();
-    _dataSource = PersistentDataSource();
     _loadRememberedCredentials();
   }
 
   Future<void> _loadRememberedCredentials() async {
-    final credentials = await _dataSource.getRememberedCredentials();
+    // Get data source from AuthProvider
+    final authProvider = context.read<AuthProvider>();
+    final credentials = await authProvider.getRememberedCredentials();
     if (credentials['username'] != null && credentials['password'] != null) {
       setState(() {
         _userController.text = credentials['username']!;
@@ -42,7 +41,7 @@ class _LoginPageState extends State<LoginPage> {
     if (mounted) {
       if (success) {
         // Guardar configuración de recordar usuario
-        await _dataSource.saveRememberUserSettings(
+        await auth.saveRememberUserSettings(
           rememberUser: _rememberUser,
           username: _rememberUser ? _userController.text : null,
           password: _rememberUser ? _passController.text : null,
