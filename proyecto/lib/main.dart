@@ -31,10 +31,22 @@ import 'package:proyecto/presentation/screens/sign_up.dart';
 import 'package:proyecto/presentation/screens/course_detail_screen.dart';
 import 'package:proyecto/presentation/screens/course_management_screen.dart';
 import 'package:proyecto/Domain/Entities/course.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:proyecto/data/datasources/supabase_remote_data_source.dart';
+import 'package:proyecto/data/datasources/supabase_sync_data_source.dart';
+import 'package:proyecto/data/services/supabase_auth_service.dart';
+import 'package:proyecto/config/supabase_config.dart';
 import 'package:proyecto/data/datasources/roble_remote_data_source.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Inicializar Supabase
+  await SupabaseAuthService.initialize(
+    supabaseUrl: SupabaseConfig.supabaseUrl,
+    supabaseAnonKey: SupabaseConfig.supabaseAnonKey,
+  );
+  
   runApp(const MyApp());
 }
 
@@ -49,11 +61,27 @@ class _MyAppState extends State<MyApp> {
   late final PersistentDataSource _dataSource;
   late final AuthRepositoryImpl _authRepo;
   late final CourseRepositoryImpl _courseRepo;
+  late final SupabaseClient _supabase;
+  late final SupabaseRemoteDataSource _remoteDataSource;
+  late final SupabaseSyncDataSource _syncDataSource;
+  late final SupabaseAuthService _authService;
   late final RobleRemoteDataSource _roble;
 
   @override
   void initState() {
     super.initState();
+    _supabase = SupabaseClient(
+      SupabaseConfig.supabaseUrl,
+      SupabaseConfig.supabaseAnonKey,
+    );
+    _remoteDataSource = SupabaseRemoteDataSource(_supabase);
+    _syncDataSource = SupabaseSyncDataSource();
+    _authService = SupabaseAuthService.instance;
+    _dataSource = PersistentDataSource(
+      remote: _remoteDataSource,
+      syncDataSource: _syncDataSource,
+      authService: _authService,
+    );
     final base = const String.fromEnvironment('ROBLE_API_BASE', defaultValue: 'https://roble.openlab.uninorte.edu.co/api');
     final token = const String.fromEnvironment('ROBLE_TOKEN', defaultValue: 'appstudents_45c2d5e1e5');
     _roble = RobleRemoteDataSource(baseUrl: base, projectToken: token);
