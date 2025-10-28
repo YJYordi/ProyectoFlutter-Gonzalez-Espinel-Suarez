@@ -5,6 +5,9 @@ import 'package:proyecto/Domain/Entities/user.dart';
 import 'package:proyecto/Domain/Entities/category.dart';
 import 'package:proyecto/presentation/providers/category_provider.dart';
 import 'package:proyecto/presentation/providers/role_provider.dart';
+import 'package:proyecto/presentation/providers/course_provider.dart';
+import 'package:proyecto/presentation/providers/grades_provider.dart';
+import 'package:proyecto/presentation/screens/grades_screen.dart';
 import 'package:proyecto/presentation/widgets/category_form_widget.dart';
 import 'package:proyecto/presentation/widgets/group_members_modal.dart';
 import 'package:proyecto/presentation/screens/evaluation_screen.dart';
@@ -116,8 +119,9 @@ class _CourseManagementScreenState extends State<CourseManagementScreen> {
                 ),
                 const SizedBox(height: 24),
                 
-                // Botón Nueva Categoría (solo para profesores)
+                // Botones para profesores
                 if (roleProvider.isProfessor) ...[
+                  // Botón Nueva Categoría
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
@@ -126,6 +130,36 @@ class _CourseManagementScreenState extends State<CourseManagementScreen> {
                       label: const Text('Nueva Categoría'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  
+                  // Botón Ver Calificaciones
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => ChangeNotifierProvider(
+                              create: (context) => GradesProvider(
+                                repository: context.read<CourseProvider>().courseRepository,
+                              ),
+                              child: GradesScreen(course: widget.course),
+                            ),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.assessment),
+                      label: const Text('Ver Calificaciones'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(

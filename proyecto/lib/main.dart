@@ -37,21 +37,9 @@ import 'package:proyecto/presentation/screens/sign_up.dart';
 import 'package:proyecto/presentation/screens/course_detail_screen.dart';
 import 'package:proyecto/presentation/screens/course_management_screen.dart';
 import 'package:proyecto/Domain/Entities/course.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:proyecto/data/datasources/supabase_remote_data_source.dart';
-import 'package:proyecto/data/datasources/supabase_sync_data_source.dart';
-import 'package:proyecto/data/services/supabase_auth_service.dart';
-import 'package:proyecto/config/supabase_config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Inicializar Supabase
-  await SupabaseAuthService.initialize(
-    supabaseUrl: SupabaseConfig.supabaseUrl,
-    supabaseAnonKey: SupabaseConfig.supabaseAnonKey,
-  );
-  
   runApp(const MyApp());
 }
 
@@ -66,27 +54,12 @@ class _MyAppState extends State<MyApp> {
   late final PersistentDataSource _dataSource;
   late final AuthRepositoryImpl _authRepo;
   late final CourseRepositoryImpl _courseRepo;
-  late final SupabaseClient _supabase;
-  late final SupabaseRemoteDataSource _supabaseRemoteDataSource;
-  late final SupabaseSyncDataSource _syncDataSource;
-  late final SupabaseAuthService _authService;
 
   @override
   void initState() {
     super.initState();
-    _supabase = SupabaseClient(
-      SupabaseConfig.supabaseUrl,
-      SupabaseConfig.supabaseAnonKey,
-    );
-    _supabaseRemoteDataSource = SupabaseRemoteDataSource(_supabase);
-    _syncDataSource = SupabaseSyncDataSource();
-    _authService = SupabaseAuthService.instance;
     
-    _dataSource = PersistentDataSource(
-      supabaseRemote: _supabaseRemoteDataSource,
-      syncDataSource: _syncDataSource,
-      authService: _authService,
-    );
+    _dataSource = PersistentDataSource();
     _authRepo = AuthRepositoryImpl(_dataSource);
     _courseRepo = CourseRepositoryImpl(_dataSource);
     _initializeApp();

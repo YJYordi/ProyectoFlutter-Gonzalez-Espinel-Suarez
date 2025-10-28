@@ -3,10 +3,10 @@ import 'package:proyecto/Domain/Entities/course_enrollment.dart';
 import 'package:proyecto/Domain/Entities/category.dart';
 import 'package:proyecto/Domain/Entities/evaluation.dart';
 import 'package:proyecto/Domain/repositories/course_repository.dart';
-import 'package:proyecto/data/datasources/memory_data_source.dart';
+import 'package:proyecto/data/datasources/persistent_data_source.dart';
 
 class CourseRepositoryImpl implements CourseRepository {
-  final InMemoryDataSource dataSource;
+  final PersistentDataSource dataSource;
 
   CourseRepositoryImpl(this.dataSource);
 

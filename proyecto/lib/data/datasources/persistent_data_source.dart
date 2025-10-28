@@ -3,23 +3,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:proyecto/Domain/Entities/course.dart';
 import 'package:proyecto/Domain/Entities/user.dart';
 import 'package:proyecto/Domain/Entities/course_enrollment.dart';
+import 'package:proyecto/Domain/Entities/category.dart';
+import 'package:proyecto/Domain/Entities/evaluation.dart';
 import 'package:proyecto/data/datasources/memory_data_source.dart';
-import 'package:proyecto/data/datasources/supabase_remote_data_source.dart';
-import 'package:proyecto/data/datasources/supabase_sync_data_source.dart';
-import 'package:proyecto/data/services/supabase_auth_service.dart';
 class PersistentDataSource extends InMemoryDataSource {
-  final SupabaseRemoteDataSource? supabaseRemote;
-  final SupabaseSyncDataSource? syncDataSource;
-  final SupabaseAuthService? authService;
-  
-  PersistentDataSource({
-    this.supabaseRemote,
-    this.syncDataSource,
-    this.authService,
-  });
   static const String _usersKey = 'stored_users';
   static const String _coursesKey = 'stored_courses';
   static const String _enrollmentsKey = 'stored_enrollments';
+  static const String _categoriesKey = 'stored_categories';
+  static const String _evaluationsKey = 'stored_evaluations';
   static const String _currentUserKey = 'current_user';
   static const String _rememberUserKey = 'remember_user';
   static const String _savedUsernameKey = 'saved_username';
@@ -29,6 +21,8 @@ class PersistentDataSource extends InMemoryDataSource {
     await _loadUsers();
     await _loadCourses();
     await _loadEnrollments();
+    await _loadCategories();
+    await _loadEvaluations();
     await _loadCurrentUser();
     await _loadRememberUserSettings();
     
@@ -36,82 +30,34 @@ class PersistentDataSource extends InMemoryDataSource {
     if (users.isEmpty) {
       await _loadPreloadedData();
     }
-    
-    // Intentar sincronizar con Supabase si está disponible
-    if (syncDataSource != null && authService != null) {
-      try {
-        await _syncWithSupabase();
-      } catch (e) {
-        print('Error syncing with Supabase: $e');
+  }
+
+  Future<void> _loadCategories() async {
+    final prefs = await SharedPreferences.getInstance();
+    final categoriesJson = prefs.getString(_categoriesKey);
+    if (categoriesJson != null) {
+      final List<dynamic> categoriesList = jsonDecode(categoriesJson);
+      categories.clear();
+      for (final categoryData in categoriesList) {
+        if (categoryData is Map<String, dynamic>) {
+          categories.add(CategoryEntity.fromJson(categoryData));
+        }
       }
     }
   }
 
-  /// Sincronizar datos con Supabase
-  Future<void> _syncWithSupabase() async {
-    if (syncDataSource == null || authService == null) return;
-
-    // Si el usuario está autenticado, descargar sus datos
-    if (authService!.isLoggedIn) {
-      final remoteData = await syncDataSource!.downloadAllData();
-      
-      // Actualizar datos locales con los remotos
-      await _updateLocalDataFromRemote(remoteData);
+  Future<void> _loadEvaluations() async {
+    final prefs = await SharedPreferences.getInstance();
+    final evaluationsJson = prefs.getString(_evaluationsKey);
+    if (evaluationsJson != null) {
+      final List<dynamic> evaluationsList = jsonDecode(evaluationsJson);
+      evaluations.clear();
+      for (final evaluationData in evaluationsList) {
+        if (evaluationData is Map<String, dynamic>) {
+          evaluations.add(EvaluationEntity.fromJson(evaluationData));
+        }
+      }
     }
-  }
-
-  /// Actualizar datos locales con datos remotos
-  Future<void> _updateLocalDataFromRemote(Map<String, dynamic> remoteData) async {
-    // Actualizar usuarios
-    final remoteUsers = remoteData['users'] as List<UserEntity>;
-    for (final user in remoteUsers) {
-      users[user.username] = (user.name, user.password);
-    }
-
-    // Actualizar cursos
-    final remoteCourses = remoteData['courses'] as List<CourseEntity>;
-    courses.clear();
-    courses.addAll(remoteCourses);
-
-    // Actualizar inscripciones
-    final remoteEnrollments = remoteData['enrollments'] as List<CourseEnrollment>;
-    enrollments.clear();
-    enrollments.addAll(remoteEnrollments);
-
-    // Guardar cambios localmente
-    await _saveUsers();
-    await _saveCourses();
-    await _saveEnrollments();
-  }
-
-  /// Sincronizar datos locales con Supabase
-  Future<void> syncToSupabase() async {
-    if (syncDataSource == null) return;
-
-    try {
-      // Convertir datos locales a entidades
-      final localUsers = users.entries.map((entry) {
-        return UserEntity(
-          username: entry.key,
-          name: entry.value.$1,
-          email: '${entry.key}@example.com',
-          password: entry.value.$2,
-          role: UserRole.student, // Por defecto
-          createdAt: DateTime.now(),
-        );
-      }).toList();
-
-      // Sincronizar todos los datos
-      await syncDataSource!.syncAllUserData(
-        users: localUsers,
-        courses: courses,
-        enrollments: enrollments,
-        categories: [], // TODO: Agregar categorías si es necesario
-      );
-    } catch (e) {
-      print('Error syncing to Supabase: $e');
-    }
-
   }
 
   Future<void> _loadUsers() async {
@@ -197,6 +143,12 @@ class PersistentDataSource extends InMemoryDataSource {
     await prefs.setString(_coursesKey, jsonEncode(coursesList));
   }
 
+  Future<void> _saveCategories() async {
+    final prefs = await SharedPreferences.getInstance();
+    final categoriesList = categories.map((category) => category.toJson()).toList();
+    await prefs.setString(_categoriesKey, jsonEncode(categoriesList));
+  }
+
   Future<void> _saveEnrollments() async {
     final prefs = await SharedPreferences.getInstance();
     final enrollmentsList = enrollments.map((enrollment) => {
@@ -207,6 +159,12 @@ class PersistentDataSource extends InMemoryDataSource {
       'enrolledAt': enrollment.enrolledAt.toIso8601String(),
     }).toList();
     await prefs.setString(_enrollmentsKey, jsonEncode(enrollmentsList));
+  }
+
+  Future<void> _saveEvaluations() async {
+    final prefs = await SharedPreferences.getInstance();
+    final evaluationsList = evaluations.map((evaluation) => evaluation.toJson()).toList();
+    await prefs.setString(_evaluationsKey, jsonEncode(evaluationsList));
   }
 
   Future<void> _saveCurrentUser() async {
@@ -220,40 +178,6 @@ class PersistentDataSource extends InMemoryDataSource {
 
   @override
   Future<UserEntity?> login(String username, String password) async {
-    // Si tenemos Supabase, intentar autenticación con Supabase
-    if (authService != null) {
-      try {
-        // Buscar el email del usuario (asumiendo formato username@example.com)
-        final email = '$username@example.com';
-        final authResponse = await authService!.signIn(
-          email: email,
-          password: password,
-        );
-
-        if (authResponse.user != null) {
-          final userEntity = authService!.getCurrentUserEntity();
-          if (userEntity != null) {
-            currentUser = userEntity;
-            await _saveCurrentUser();
-            
-            // Log actividad
-            if (syncDataSource != null) {
-              await syncDataSource!.logUserActivity(
-                type: 'login',
-                payload: {'username': username},
-                username: username,
-              );
-            }
-            
-            return userEntity;
-          }
-        }
-      } catch (e) {
-        print('Supabase login failed, trying local: $e');
-      }
-    }
-
-    // Fallback a autenticación local
     final result = await super.login(username, password);
     if (result != null) {
       await _saveCurrentUser();
@@ -263,66 +187,12 @@ class PersistentDataSource extends InMemoryDataSource {
 
   @override
   Future<void> logout() async {
-    // Si tenemos Supabase, cerrar sesión en Supabase también
-    if (authService != null) {
-      try {
-        await authService!.signOut();
-      } catch (e) {
-        print('Error signing out from Supabase: $e');
-      }
-    }
-    
     await super.logout();
     await _saveCurrentUser();
-    
   }
 
   @override
   Future<UserEntity> register({required String name, required String username, required String password}) async {
-    // Si tenemos Supabase, registrar en Supabase también
-    if (authService != null) {
-      try {
-        final email = '$username@example.com';
-        final authResponse = await authService!.signUp(
-          email: email,
-          password: password,
-          name: name,
-          username: username,
-          role: UserRole.student, // Por defecto
-        );
-
-        if (authResponse.user != null) {
-          final userEntity = UserEntity(
-            username: username,
-            name: name,
-            email: email,
-            password: password,
-            role: UserRole.student,
-            createdAt: DateTime.now(),
-            supabaseUserId: authResponse.user!.id,
-          );
-
-          // Agregar a usuarios locales
-          users[username] = (name, password);
-          await _saveUsers();
-
-          // Log actividad
-          if (syncDataSource != null) {
-            await syncDataSource!.logUserActivity(
-              type: 'register',
-              payload: {'username': username},
-              username: username,
-            );
-          }
-
-          return userEntity;
-        }
-      } catch (e) {
-        print('Supabase registration failed, trying local: $e');
-      }
-    }
-
-    // Fallback a registro local
     final result = await super.register(name: name, username: username, password: password);
     await _saveUsers();
     return result;
@@ -534,5 +404,99 @@ class PersistentDataSource extends InMemoryDataSource {
     // Guardar datos precargados
     await _saveUsers();
     await _saveCourses();
+    await _saveCategories();
+    await _saveEvaluations();
+  }
+
+  // Métodos para categorías
+  @override
+  Future<void> createCategory(CategoryEntity category) async {
+    await super.createCategory(category);
+    await _saveCategories();
+  }
+
+  @override
+  Future<List<CategoryEntity>> getCategoriesByCourse(String courseId) async {
+    return await super.getCategoriesByCourse(courseId);
+  }
+
+  @override
+  Future<void> updateCategory(CategoryEntity category) async {
+    await super.updateCategory(category);
+    await _saveCategories();
+  }
+
+  @override
+  Future<void> deleteCategory(String categoryId) async {
+    await super.deleteCategory(categoryId);
+    await _saveCategories();
+  }
+
+  // Métodos para evaluaciones
+  @override
+  Future<void> createEvaluation(EvaluationEntity evaluation) async {
+    await super.createEvaluation(evaluation);
+    await _saveEvaluations();
+  }
+
+  @override
+  Future<List<EvaluationEntity>> getEvaluationsByGroup({
+    required String categoryId,
+    required String courseId,
+    required String evaluatorUsername,
+    required String groupId,
+  }) async {
+    return await super.getEvaluationsByGroup(
+      categoryId: categoryId,
+      courseId: courseId,
+      evaluatorUsername: evaluatorUsername,
+      groupId: groupId,
+    );
+  }
+
+  @override
+  Future<List<EvaluationEntity>> getPendingEvaluations({
+    String? categoryId,
+    String? courseId,
+    required String username,
+  }) async {
+    return await super.getPendingEvaluations(
+      categoryId: categoryId,
+      courseId: courseId,
+      username: username,
+    );
+  }
+
+  @override
+  Future<void> updateEvaluation(EvaluationEntity evaluation) async {
+    await super.updateEvaluation(evaluation);
+    await _saveEvaluations();
+  }
+
+  @override
+  Future<CategoryEntity?> getCategoryById(String categoryId) async {
+    return await super.getCategoryById(categoryId);
+  }
+
+  @override
+  Future<EvaluationEntity?> getEvaluationById(String evaluationId) async {
+    return await super.getEvaluationById(evaluationId);
+  }
+
+  @override
+  Future<EvaluationEntity?> getEvaluation({
+    required String courseId,
+    required String categoryId,
+    required String groupId,
+    required String evaluatorUsername,
+    required String evaluatedUsername,
+  }) async {
+    return await super.getEvaluation(
+      courseId: courseId,
+      categoryId: categoryId,
+      groupId: groupId,
+      evaluatorUsername: evaluatorUsername,
+      evaluatedUsername: evaluatedUsername,
+    );
   }
 }
