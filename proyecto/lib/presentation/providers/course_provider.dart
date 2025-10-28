@@ -240,6 +240,26 @@ class CourseProvider extends ChangeNotifier {
     );
   }
 
+  // Método para limpiar todos los cursos (útil para testing)
+  Future<void> clearAllCourses() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await courseRepository.clearAllCourses();
+      _courses.clear();
+      _createdCourses.clear();
+      _enrolledCourses.clear();
+      _filteredCourses.clear();
+      _searchResults.clear();
+    } catch (e) {
+      // Manejar error si es necesario
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   // Clase auxiliar para grupo
 }
 
