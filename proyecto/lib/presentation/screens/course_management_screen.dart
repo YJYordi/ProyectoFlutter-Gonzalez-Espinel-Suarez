@@ -7,9 +7,12 @@ import 'package:proyecto/presentation/providers/category_provider.dart';
 import 'package:proyecto/presentation/providers/role_provider.dart';
 import 'package:proyecto/presentation/providers/course_provider.dart';
 import 'package:proyecto/presentation/providers/grades_provider.dart';
+import 'package:proyecto/presentation/providers/student_management_provider.dart';
 import 'package:proyecto/presentation/screens/grades_screen.dart';
 import 'package:proyecto/presentation/widgets/category_form_widget.dart';
 import 'package:proyecto/presentation/widgets/group_members_modal.dart';
+import 'package:proyecto/presentation/widgets/group_details_modal.dart';
+import 'package:proyecto/presentation/widgets/move_student_modal.dart';
 import 'package:proyecto/presentation/screens/evaluation_screen.dart';
 import 'package:proyecto/presentation/screens/professor_evaluations_screen.dart';
 
@@ -29,6 +32,7 @@ class CourseManagementScreen extends StatefulWidget {
 
 class _CourseManagementScreenState extends State<CourseManagementScreen> {
   final GlobalKey _formWidgetKey = GlobalKey();
+  final Map<String, bool> _expandedCategories = {};
 
   @override
   void initState() {
@@ -246,6 +250,7 @@ class _CourseManagementScreenState extends State<CourseManagementScreen> {
   Widget _buildCategoryCard(CategoryEntity category, CategoryProvider categoryProvider) {
     final isUserEnrolled = categoryProvider.isUserEnrolledInCategory(category.id, widget.currentUser.username);
     final userGroup = categoryProvider.getUserGroupInCategory(category.id, widget.currentUser.username);
+    final isExpanded = _expandedCategories[category.id] ?? false;
     
     return Consumer<RoleProvider>(
       builder: (context, roleProvider, child) {
@@ -259,57 +264,73 @@ class _CourseManagementScreenState extends State<CourseManagementScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header de la categoría
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        category.name,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+              // Header de la categoría (desplegable)
+              InkWell(
+                onTap: () {
+                  setState(() {
+                    _expandedCategories[category.id] = !isExpanded;
+                  });
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          category.name,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    ),
-                    // Botones de editar y eliminar solo para profesores
-                    if (roleProvider.isProfessor) ...[
-                      // Botón editar
-                      IconButton(
-                        onPressed: () => categoryProvider.startEditingCategory(category, context),
-                        icon: const Icon(Icons.edit, color: Colors.blue),
-                        tooltip: 'Editar categoría',
-                      ),
-                      // Botón eliminar
-                      IconButton(
-                        onPressed: () => _showDeleteConfirmation(category, categoryProvider),
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        tooltip: 'Eliminar categoría',
+                      // Botones de editar y eliminar solo para profesores
+                      if (roleProvider.isProfessor) ...[
+                        // Botón editar
+                        IconButton(
+                          onPressed: () => categoryProvider.startEditingCategory(category, context),
+                          icon: const Icon(Icons.edit, color: Colors.blue),
+                          tooltip: 'Editar categoría',
+                        ),
+                        // Botón eliminar
+                        IconButton(
+                          onPressed: () => _showDeleteConfirmation(category, categoryProvider),
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          tooltip: 'Eliminar categoría',
+                        ),
+                      ],
+                      // Icono de expansión
+                      Icon(
+                        isExpanded ? Icons.expand_less : Icons.expand_more,
+                        color: Colors.grey[600],
                       ),
                     ],
-                  ],
-                ),
-              ),
-          
-              // Información de la categoría
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  'Cantidad Groups: ${category.numberOfGroups}/${category.isRandomAssignment ? "Random" : "Autoasign"}',
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 14,
                   ),
                 ),
               ),
-              
-              const SizedBox(height: 16),
-              
-              // Lista de grupos
-              ...category.groups.map((group) => _buildGroupItem(group, category, categoryProvider, isUserEnrolled, userGroup)),
-              
-              const SizedBox(height: 16),
+          
+              // Contenido expandible
+              if (isExpanded) ...[
+                // Información de la categoría
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    'Cantidad Groups: ${category.numberOfGroups}/${category.isRandomAssignment ? "Random" : "Autoasign"}',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // Lista de grupos
+                ...category.groups.map((group) => _buildGroupItem(group, category, categoryProvider, isUserEnrolled, userGroup)),
+                
+                const SizedBox(height: 16),
+              ],
             ],
           ),
         );
@@ -327,97 +348,150 @@ class _CourseManagementScreenState extends State<CourseManagementScreen> {
     final isCurrentUserInGroup = group.members.contains(widget.currentUser.username);
     final canJoin = !isUserEnrolled && group.members.length < group.maxMembers;
     
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: Row(
-        children: [
-          // Información del grupo
-          Expanded(
-            child: Row(
-              children: [
-                Text(
-                  'Grupo ${group.groupNumber}',
-                  style: const TextStyle(fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: () => _showGroupMembersModal(group),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.blue[50],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.blue[200]!),
-                    ),
-                    child: Text(
-                      '${group.members.length}/${group.maxMembers}',
-                      style: TextStyle(
-                        color: Colors.blue[700],
-                        fontWeight: FontWeight.w500,
-                      ),
+    return Consumer<RoleProvider>(
+      builder: (context, roleProvider, child) {
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey[300]!),
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  // Información del grupo
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Text(
+                          'Grupo ${group.groupNumber}',
+                          style: const TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: () => _showGroupMembersModal(group),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.blue[50],
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.blue[200]!),
+                            ),
+                            child: Text(
+                              '${group.members.length}/${group.maxMembers}',
+                              style: TextStyle(
+                                color: Colors.blue[700],
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
+                  
+                  // Botones de acción
+                  if (roleProvider.isProfessor) ...[
+                    // Botón para ver detalles del grupo con promedios
+                    IconButton(
+                      onPressed: () => _showGroupDetailsModal(group, category),
+                      icon: const Icon(Icons.bar_chart, color: Colors.purple),
+                      tooltip: 'Ver promedios del grupo',
+                    ),
+                  ] else if (canJoin) ...[
+                    ElevatedButton(
+                      onPressed: () => categoryProvider.enrollInGroup(
+                        categoryId: category.id,
+                        groupId: group.id,
+                        username: widget.currentUser.username,
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      ),
+                      child: const Text('Unir'),
+                    ),
+                  ] else if (isCurrentUserInGroup) ...[
+                    ElevatedButton(
+                      onPressed: () => categoryProvider.unenrollFromGroup(
+                        categoryId: category.id,
+                        username: widget.currentUser.username,
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      ),
+                      child: const Text('Salir'),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: () => _navigateToEvaluation(category, group),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      ),
+                      child: const Text('Eval'),
+                    ),
+                  ],
+                ],
+              ),
+              
+              // Lista de estudiantes (solo para profesores)
+              if (roleProvider.isProfessor && group.members.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                const Divider(),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: group.members.map((student) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey[300]!),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _getUserName(student),
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                          const SizedBox(width: 4),
+                          IconButton(
+                            onPressed: () => _showMoveStudentModal(student, category),
+                            icon: const Icon(Icons.swap_horiz, size: 16, color: Colors.blue),
+                            tooltip: 'Mover estudiante',
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
                 ),
               ],
-            ),
+            ],
           ),
-          
-          // Botones de acción
-          if (canJoin)
-            ElevatedButton(
-              onPressed: () => categoryProvider.enrollInGroup(
-                categoryId: category.id,
-                groupId: group.id,
-                username: widget.currentUser.username,
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              ),
-              child: const Text('Unir'),
-            )
-          else if (isCurrentUserInGroup) ...[
-            ElevatedButton(
-              onPressed: () => categoryProvider.unenrollFromGroup(
-                categoryId: category.id,
-                username: widget.currentUser.username,
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              ),
-              child: const Text('Salir'),
-            ),
-            const SizedBox(width: 8),
-            ElevatedButton(
-              onPressed: () => _navigateToEvaluation(category, group),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              ),
-              child: const Text('Eval'),
-            ),
-          ],
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -439,6 +513,41 @@ class _CourseManagementScreenState extends State<CourseManagementScreen> {
             : null,
       ),
     );
+  }
+
+  String _getUserName(String username) {
+    return username.split('@')[0].replaceAll('.', ' ').toUpperCase();
+  }
+
+  void _showGroupDetailsModal(GroupEntity group, CategoryEntity category) {
+    showDialog(
+      context: context,
+      builder: (context) => GroupDetailsModal(
+        group: group,
+        categoryId: category.id,
+      ),
+    );
+  }
+
+  void _showMoveStudentModal(String studentUsername, CategoryEntity category) {
+    showDialog(
+      context: context,
+      builder: (context) => ChangeNotifierProvider(
+        create: (context) => StudentManagementProvider(
+          courseRepository: Provider.of<CourseProvider>(context, listen: false).courseRepository,
+        ),
+        child: MoveStudentModal(
+          category: category,
+          studentUsername: studentUsername,
+        ),
+      ),
+    ).then((success) {
+      if (success == true) {
+        // Recargar las categorías después de mover un estudiante
+        final categoryProvider = Provider.of<CategoryProvider>(context, listen: false);
+        categoryProvider.loadCategories(widget.course.id);
+      }
+    });
   }
 
   void _navigateToEvaluation(CategoryEntity category, GroupEntity group) {

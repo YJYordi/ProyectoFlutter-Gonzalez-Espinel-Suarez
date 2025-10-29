@@ -45,6 +45,26 @@ class EvaluationProvider extends ChangeNotifier {
     return completed / _evaluations.length;
   }
 
+  // Obtener todas las evaluaciones
+  Future<void> loadAllEvaluations() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      // Por ahora, cargar todas las evaluaciones desde el repositorio
+      // Esto debería ser implementado en el repositorio si no existe
+      _evaluations = [];
+      _completedEvaluations = [];
+      _pendingEvaluations = [];
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   // Obtener evaluaciones de un grupo
   Future<void> loadEvaluationsByGroup({
     required String courseId,

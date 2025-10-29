@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:proyecto/Domain/Entities/course.dart';
+import 'package:proyecto/Domain/Entities/category.dart';
 import 'package:proyecto/Domain/Entities/course_enrollment.dart';
 import 'package:proyecto/Domain/usecases/create_course_usecase.dart';
 import 'package:proyecto/Domain/usecases/get_courses_usecase.dart';
@@ -238,6 +239,11 @@ class CourseProvider extends ChangeNotifier {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Funcionalidad de evaluación pendiente')),
     );
+  }
+
+  // Obtener categorías de un curso
+  Future<List<CategoryEntity>> getCategoriesByCourse(String courseId) async {
+    return await courseRepository.getCategoriesByCourse(courseId);
   }
 
   // Método para limpiar todos los cursos (útil para testing)

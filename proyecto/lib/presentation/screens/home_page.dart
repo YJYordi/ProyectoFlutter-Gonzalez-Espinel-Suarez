@@ -4,8 +4,6 @@ import 'package:proyecto/Domain/Entities/course.dart';
 import 'package:proyecto/presentation/screens/course_creation.dart';
 import 'package:proyecto/presentation/screens/course_detail_screen.dart';
 import 'package:proyecto/presentation/screens/explore_page.dart';
-import 'package:proyecto/presentation/screens/pending_evaluations_screen.dart';
-import 'package:proyecto/presentation/screens/professor_evaluations_screen.dart';
 import 'package:proyecto/presentation/providers/course_provider.dart';
 import 'package:proyecto/presentation/providers/auth_provider.dart';
 import 'package:proyecto/presentation/providers/role_provider.dart';
@@ -212,9 +210,13 @@ class _HomePageState extends State<HomePage> {
                 // Profesor ve todos los cursos
                 filteredCourses = cursos;
               } else {
-                // Estudiante ve solo cursos no inscritos
+                // Estudiante ve solo cursos no inscritos Y no creados por él
                 final enrolledCourseIds = enrolledCourses.map((c) => c.id).toSet();
-                filteredCourses = cursos.where((course) => !enrolledCourseIds.contains(course.id)).toList();
+                final createdCourseIds = createdCourses.map((c) => c.id).toSet();
+                filteredCourses = cursos.where((course) => 
+                  !enrolledCourseIds.contains(course.id) && 
+                  !createdCourseIds.contains(course.id)
+                ).toList();
               }
               
               return SizedBox(
@@ -474,44 +476,6 @@ class _HomePageState extends State<HomePage> {
         currentIndex: _selectedIndex,
         onTap: (index) {
           if (index == 2) {
-            // Navegar a la pantalla de evaluaciones según el rol
-            if (roleProvider.isProfessor) {
-              // Para profesores: mostrar todas las evaluaciones de sus cursos
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ProfessorEvaluationsScreen(
-                    course: createdCourses.isNotEmpty ? createdCourses.first : CourseEntity(
-                      id: 'mock',
-                      title: 'Mis Cursos',
-                      description: 'Evaluaciones de todos los cursos',
-                      creatorUsername: authProvider.user?.username ?? '',
-                      creatorName: authProvider.user?.name ?? '',
-                      categories: [],
-                      maxEnrollments: 0,
-                      currentEnrollments: 0,
-                      createdAt: DateTime.now(),
-                      schedule: '',
-                      location: '',
-                      price: 0.0,
-                      isRandomAssignment: false,
-                    ),
-                    professorUsername: authProvider.user?.username ?? '',
-                  ),
-                ),
-              );
-            } else {
-              // Para estudiantes: mostrar evaluaciones pendientes
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PendingEvaluationsScreen(
-                    username: authProvider.user?.username ?? '',
-                  ),
-                ),
-              );
-            }
-          } else if (index == 3) {
             // Navegar a la pantalla de perfil
             Navigator.pushNamed(context, '/perfil', arguments: displayName);
           } else {
@@ -525,10 +489,6 @@ class _HomePageState extends State<HomePage> {
         items: [
           const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
           const BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Explorar'),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.assessment),
-            label: roleProvider.isProfessor ? 'Evaluaciones' : 'Pendientes',
-          ),
           const BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
         ],
       ),
